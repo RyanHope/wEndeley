@@ -1,0 +1,12 @@
+{
+	"title" : "Mendeley",
+	"id" : "us.ryanhope.mendeley",
+	"version" : "1.0.0",
+	"vendor" : "Ryan Hope",
+	"type" : "web",
+	"noDeprecatedStyles" : true,
+  	"main" : "index.html",
+  	"icon" : "images/icon-64.png",
+  	"splashicon": "images/icon-128.png",
+  	"uiRevision" : 2,
+}
