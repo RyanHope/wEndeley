@@ -1,11 +1,13 @@
 enyo.depends(
 	
-	"jsOAuth/dist/jsOAuth-1.2.min.js",	
+	"css/main.css",
+	
+	"jsOAuth/dist/jsOAuth-1.2.js",
 
 	"models/prefs.js",
-	"models/mendeley.js",
 	
 	"enyo/popup.js",
+	"enyo/mendeley.js",
 	"enyo/main.js"
 
 )

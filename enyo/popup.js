@@ -1,5 +1,5 @@
 enyo.kind({
-	name: "Mendeley.Popup",
+	name: "Popup2",
 	kind: "Popup",
 	fixPositionY: true, // set this to false to get normal repositioning behavior
 	current_y: null,
