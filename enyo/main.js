@@ -159,9 +159,25 @@ enyo.kind({
   		this.$.viewPane.selectViewByName(inSender.getValue());
 	},
 	
+	sortByAuthor: function(a ,b) {
+		if (!a.authors && !b.authors)
+			return 0
+		else if (!a.authors && b.authors)
+			return 1
+		else if (a.authors && !b.authors)
+			return -1
+		else (a.authors && b.authors)
+			if (a.authors > b.authors)
+				return 1
+			else if (a.authors < b.authors)
+				return -1
+			else
+				return 0
+	},
+	
 	sortByYear: function(a, b) {
 		if (!a.year && !b.year)
-			return 0
+			return this.sortByAuthor(a, b)
 		else if (!a.year && b.year)
 			return -1
 		else if (a.year && !b.year)
@@ -172,13 +188,13 @@ enyo.kind({
 			else if (a.year < b.year)
 				return 1
 			else
-				return 0			
+				return this.sortByAuthor(a, b)
 	},
 	
 	document: function(data) {
 		this.$.viewLibrary.data.push(enyo.json.parse(data.text))
 		if (this.$.viewLibrary.data.length==106) {
-			this.$.viewLibrary.data.sort(this.sortByYear)
+			this.$.viewLibrary.data.sort(enyo.bind(this, 'sortByYear'))
 			this.$.mainSpinner.hide()
 			this.$.scrim.hide()
 			this.$.viewLibrary.refresh()
