@@ -2,6 +2,43 @@
     background: url(../images/icon-256.png) center center no-repeat;
 }
 
-.drawer-item .icon.all-documents {
+.main-list .drawer-item.first {
+	border-top: none;
+}
+.main-list .drawer-item.last {
+	border-bottom: none;
+}
+
+.main-list .icon {
+	width: 32px;
+	height: 22px;
+	vertical-align: middle;
+	text-align: left;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.main-list .icon.all-documents {
 	background-image: url(../images/all-documents.png);
+}
+.main-list .icon.recently-added {
+	background-image: url(../images/recently-added.png);
+}
+.main-list .icon.favorites {
+	background-image: url(../images/favorites.png);
+}
+.main-list .icon.needs-review {
+	background-image: url(../images/needs-review.png);
+}
+.main-list .icon.my-publications {
+	background-image: url(../images/my-publications.png);
+}
+.main-list .icon.unsorted {
+	background-image: url(../images/unsorted.png);
+}
+.main-list .icon.recently-added {
+	background-image: url(../images/recently-added.png);
+}
+.main-list .icon.trash {
+	background-image: url(../images/trash.png);
 }

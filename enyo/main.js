@@ -7,6 +7,14 @@ enyo.kind({
 
 	components: [
 		{
+			kind: "Scrim",
+			layoutKind: "VFlexLayout",
+			align: "center", pack: "center",
+			components: [
+				{kind: "SpinnerLarge", name: 'mainSpinner'}
+			]
+		},
+		{
 			kind: "AppMenu",
 			components: [
 		  		{
@@ -15,10 +23,12 @@ enyo.kind({
 	  			}
 			]
 		},
-  		{
+  		/*{
   			kind: "Toolbar",
   			name: 'toolbar',
+  			className: 'enyo-toolbar-light',
   			components: [
+  				{icon: 'images/sync.png', content:'Sync Library'}
   				{
   					kind: "TabGroup",
   					flex: 1,
@@ -51,58 +61,28 @@ enyo.kind({
 				      		value: 'viewPeople'
 			      		}
   					]
-  				},
+  				}
   			]
-		},
+		},*/
 		{kind: "SlidingPane", flex: 1, components: [
 			{name: "left", width: "250px", components: [
-				{kind: "DividerDrawer", caption: "My Library", components: [
-					//{name: 'all-documents', kind: 'DrawerItem', label: "All Documents"},
-	          		{kind: 'HFlexBox', components: [
-		          		{kind: "Image", style: 'padding-left: 18px; padding-right: 4px;', src: 'images/all-documents.png'},
-						{content: "All Documents", style: 'font-size: 80%;'}
-	          	  	]},
-			  		{kind: 'HFlexBox', components: [
-		          		{kind: "Image", style: 'padding-left: 18px; padding-right: 4px;', src: 'images/recently-added.png'},
-						{content: "Recently Added", style: 'font-size: 80%;'}
-	          	  	]},
-		          	{kind: 'HFlexBox', components: [
-		          		{kind: "Image", style: 'padding-left: 18px; padding-right: 4px;', src: 'images/favorites.png'},
-						{content: "Favorites", style: 'font-size: 80%;'}
-	          	  	]},
-	          	  	{kind: 'HFlexBox', components: [
-		          		{kind: "Image", style: 'padding-left: 18px; padding-right: 4px;', src: 'images/emblem-important.png'},
-						{content: "Needs Review", style: 'font-size: 80%;'}
-	          	  	]},
-	          	  	{kind: 'HFlexBox', components: [
-		          		{kind: "Image", style: 'padding-left: 18px; padding-right: 4px;', src: 'images/my-publications.png'},
-						{content: "My Publications", style: 'font-size: 80%;'}
-	          	  	]},
-	          	  	{kind: 'HFlexBox', components: [
-		          		{kind: "Image", style: 'padding-left: 18px; padding-right: 4px;', src: 'images/unsorted.png'},
-						{content: "Unsorted", style: 'font-size: 80%;'}
-	          	  	]},
-		          	{content: "Create Folder...", style: 'padding-left: 44px; font-size: 80%;'}
+				{kind: "DividerDrawer", caption: "My Library", className: 'main-list', components: [
+					{name: 'all-documents',  kind: 'DrawerItem', className: 'drawer-item first', label: 'All Documents', icon: 'all-documents'},
+					{name: 'recently-added',  kind: 'DrawerItem', className: 'drawer-item', label: 'Recently Added', icon: 'recently-added'},
+					{name: 'favorites',  kind: 'DrawerItem', className: 'drawer-item', label: 'Favorites', icon: 'favorites'},
+					{name: 'needs-review',  kind: 'DrawerItem', className: 'drawer-item', label: 'Needs Review', icon: 'needs-review'},
+					{name: 'my-publications',  kind: 'DrawerItem', className: 'drawer-item', label: 'My Publications', icon: 'my-publications'},
+					{name: 'unsorted',  kind: 'DrawerItem', className: 'drawer-item', label: 'Unsorted', icon: 'unsorted'},
+					{name: 'create-folder',  kind: 'DrawerItem', className: 'drawer-item last', label: 'Create Folder...'}
 				]},
-				{kind: "DividerDrawer", caption: "Groups", components: [
-			          {content: "Create Group...", style: 'padding-left: 44px; font-size: 80%;'}
+				{kind: "DividerDrawer", caption: "Groups", className: 'main-list', components: [
+					{name: 'create-group',  kind: 'DrawerItem', className: 'drawer-item first last', label: 'Create Group...'}
 				]},
-				{kind: "DividerDrawer", caption: "Trash", components: [
-					{kind: 'HFlexBox', components: [
-		          		{kind: "Image", style: 'padding-left: 18px; padding-right: 4px;', src: 'images/user-trash.png'},
-						{content: "All Deleted Documents", style: 'font-size: 80%;'}
-	          	  	]},
+				{kind: "DividerDrawer", caption: "Trash", className: 'main-list', components: [
+					{name: 'trash',  kind: 'DrawerItem', className: 'drawer-item first last', label: 'All Deleted Documents', icon: 'trash'}
 				]}
 			]},
 	  		{name: "right", flex: 1, components: [
-	  			{
-					kind: "Scrim",
-					layoutKind: "VFlexLayout",
-					align: "center", pack: "center",
-					components: [
-						{kind: "SpinnerLarge", name: 'mainSpinner'}
-					]
-				},
 	  			{
 					kind: "Pane",
 					flex: 1,
@@ -129,6 +109,7 @@ enyo.kind({
 				{
 					kind: 'Toolbar',
 					name: 'bottom-bar',
+					className: 'enyo-toolbar-light',
 					components: [
 						{
 							kind: 'GrabButton'
@@ -246,7 +227,7 @@ enyo.kind({
 	getLibrary: function() {
 		this.$.scrim.show()
 		this.$.mainSpinner.show()
-		this.$.mainButtons.setValue('viewLibrary')
+		//this.$.mainButtons.setValue('viewLibrary')
 		this.$.client.getLibrary(enyo.bind(this,'library'), enyo.bind(this,'failure'))
 	},
 	
