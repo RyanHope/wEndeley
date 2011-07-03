@@ -17,44 +17,68 @@ enyo.kind({
 		},
   		{
   			kind: "Toolbar",
-  			name: 'toolbar', 
+  			name: 'toolbar',
+  			//className: 'enyo-toolbar-light',
   			components: [
-		      	{
-		      		caption: "Dashboard",
-		      		flex: 1,
-		      		value: 'dashboard',
-	      			toggling: true
-      			},
-		      	{
-		      		caption: "My Library",
-		      		flex: 1,
-		      		value: 'library',
-		      		toggling: true
-	      		},
-		      	{
-		      		caption: "Papers",
-		      		flex: 1,
-		      		value: 'papers',
-		      		toggling: true
-	      		},
-		      	{
-		      		caption: "Groups",
-		      		flex: 1,
-		      		value: 'groups',
-		      		toggling: true
-	      		},
-		      	{
-		      		caption: "People",
-		      		flex: 1,
-		      		value: 'people',
-		      		toggling: true
-	      		}
+  				{
+  					kind: "TabGroup",
+  					flex: 1,
+  					name: 'mainButtons',
+  					onChange: 'myGroupClick',
+  					components: [
+		      			{
+		      				name: 'btnDashboard',
+			      			caption: "Dashboard",
+			      			value: 'viewDashboard'
+      					},
+				      	{
+				      		name: 'btnLibrary',
+				      		caption: "My Library",
+				      		value: 'viewLibrary'
+			      		},
+				      	{
+				      		name: 'btnPapers',
+				      		caption: "Papers",
+				      		value: 'viewPapers'
+			      		},
+				      	{
+				      		name: 'btnGroups',
+				      		caption: "Groups",
+				      		value: 'viewGroups'
+			      		},
+				      	{
+				      		name: 'btnPeople',
+				      		caption: "People",
+				      		value: 'viewPeople'
+			      		}
+  					]
+  				},
   			]
 		},
-  		{
-  			name: 'statusText',
-  			flex: 1,
-  			className: 'logo-large'
+		{
+			kind: "Pane",
+			flex: 1,
+			name: 'viewPane',
+			components: [
+				{name: 'viewLibrary',flex:1},
+				{name: 'viewDashboard',flex:1},
+				{name: 'viewPapers',flex:1},
+				{name: 'viewGroups',flex:1},
+				{name: 'viewPeope',flex:1}
+			]
+		},
+		{
+			kind: 'Toolbar',
+			name: 'bottom-bar',
+			//className: 'enyo-toolbar-light',
+			pack: "end",
+			components: [
+				{
+					kind: 'Button',
+					caption: 'Details',
+					//showing: false
+				},
+			]
 		}
 	],
 	
@@ -69,14 +93,16 @@ enyo.kind({
 	},
 
 	myGroupClick: function(inSender, e) {
-  		this.$.statusText.setContent("Current selection: " + inSender.getValue())
+  		this.warn("Current selection: " + inSender.getValue())
+  		this.$.viewPane.selectViewByName(inSender.getValue());
 	},
 	
 	library: function(data) {
-		this.$.statusText.setContent(enyo.json.stringify(data))
+		this.$.viewLibrary.setContent(enyo.json.stringify(data))
 	},	
 	
 	getLibrary: function() {
+		this.$.mainButtons.setValue('viewLibrary')
 		this.$.client.getLibrary(enyo.bind(this,'library'), enyo.bind(this,'failure'))
 	},
 	
@@ -89,7 +115,6 @@ enyo.kind({
 	},
 	
 	handleOAuthReady: function(hasAccount) {
-		this.warn("has accounbt: "+hasAccount)
 		if (hasAccount)
 			this.getLibrary()
 		else
