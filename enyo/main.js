@@ -7,14 +7,6 @@ enyo.kind({
 
 	components: [
 		{
-			kind: "Scrim",
-			layoutKind: "VFlexLayout",
-			align: "center", pack: "center",
-			components: [
-				{kind: "SpinnerLarge", name: 'mainSpinner'}
-			]
-		},
-		{
 			kind: "AppMenu",
 			components: [
 		  		{
@@ -62,44 +54,95 @@ enyo.kind({
   				},
   			]
 		},
-		{
-			kind: "Pane",
-			flex: 1,
-			name: 'viewPane',
-			components: [
-				{
-					kind: 'List2',
-					name: 'viewLibrary',
-					data: [],
-					flex:1,
-					height: '100%',
-					onSetupRow: 'setupRow',
+		{kind: "SlidingPane", flex: 1, components: [
+			{name: "left", width: "250px", components: [
+				{kind: "DividerDrawer", caption: "My Library", components: [
+					//{name: 'all-documents', kind: 'DrawerItem', label: "All Documents"},
+	          		{kind: 'HFlexBox', components: [
+		          		{kind: "Image", style: 'padding-left: 18px; padding-right: 4px;', src: 'images/all-documents.png'},
+						{content: "All Documents", style: 'font-size: 80%;'}
+	          	  	]},
+			  		{kind: 'HFlexBox', components: [
+		          		{kind: "Image", style: 'padding-left: 18px; padding-right: 4px;', src: 'images/recently-added.png'},
+						{content: "Recently Added", style: 'font-size: 80%;'}
+	          	  	]},
+		          	{kind: 'HFlexBox', components: [
+		          		{kind: "Image", style: 'padding-left: 18px; padding-right: 4px;', src: 'images/favorites.png'},
+						{content: "Favorites", style: 'font-size: 80%;'}
+	          	  	]},
+	          	  	{kind: 'HFlexBox', components: [
+		          		{kind: "Image", style: 'padding-left: 18px; padding-right: 4px;', src: 'images/emblem-important.png'},
+						{content: "Needs Review", style: 'font-size: 80%;'}
+	          	  	]},
+	          	  	{kind: 'HFlexBox', components: [
+		          		{kind: "Image", style: 'padding-left: 18px; padding-right: 4px;', src: 'images/my-publications.png'},
+						{content: "My Publications", style: 'font-size: 80%;'}
+	          	  	]},
+	          	  	{kind: 'HFlexBox', components: [
+		          		{kind: "Image", style: 'padding-left: 18px; padding-right: 4px;', src: 'images/unsorted.png'},
+						{content: "Unsorted", style: 'font-size: 80%;'}
+	          	  	]},
+		          	{content: "Create Folder...", style: 'padding-left: 44px; font-size: 80%;'}
+				]},
+				{kind: "DividerDrawer", caption: "Groups", components: [
+			          {content: "Create Group...", style: 'padding-left: 44px; font-size: 80%;'}
+				]},
+				{kind: "DividerDrawer", caption: "Trash", components: [
+					{kind: 'HFlexBox', components: [
+		          		{kind: "Image", style: 'padding-left: 18px; padding-right: 4px;', src: 'images/user-trash.png'},
+						{content: "All Deleted Documents", style: 'font-size: 80%;'}
+	          	  	]},
+				]}
+			]},
+	  		{name: "right", flex: 1, components: [
+	  			{
+					kind: "Scrim",
+					layoutKind: "VFlexLayout",
+					align: "center", pack: "center",
 					components: [
-						{name: "divider", captureState: false, kind: "Divider", showing: false, caption: "Sometime"},
-						{name: 'paper', kind: 'Item', style: 'font-size: 65%;', allowHtml: true}
-	    			]
+						{kind: "SpinnerLarge", name: 'mainSpinner'}
+					]
 				},
-				{name: 'viewDashboard',flex:1},
-				{name: 'viewPapers',flex:1},
-				{name: 'viewGroups',flex:1},
-				{name: 'viewPeope',flex:1},
-			]
-		},
-		{
-			kind: 'Toolbar',
-			name: 'bottom-bar',
-			components: [
-				{
-					kind: 'GrabButton'
+	  			{
+					kind: "Pane",
+					flex: 1,
+					name: 'viewPane',
+					components: [
+						{
+							kind: 'List2',
+							name: 'viewLibrary',
+							data: [],
+							flex:1,
+							height: '100%',
+							onSetupRow: 'setupRow',
+							components: [
+								{name: "divider", captureState: false, kind: "Divider", showing: false, caption: "Sometime"},
+								{name: 'paper', kind: 'Item', style: 'font-size: 65%;', allowHtml: true}
+			    			]
+						},
+						{name: 'viewDashboard',flex:1},
+						{name: 'viewPapers',flex:1},
+						{name: 'viewGroups',flex:1},
+						{name: 'viewPeope',flex:1},
+					]
 				},
 				{
-					name: "refresh",
-					kind: "ToolButton", 
-					icon: "images/icon-refresh.png",
-					onclick: 'refreshView'
+					kind: 'Toolbar',
+					name: 'bottom-bar',
+					components: [
+						{
+							kind: 'GrabButton'
+						},
+						{
+							name: "refresh",
+							kind: "ToolButton", 
+							icon: "images/icon-refresh.png",
+							onclick: 'refreshView'
+						}
+					]
 				}
-			]
-		}
+	  		]}
+		]}
 	],
 	
 	getDivider: function(inMessage, inIndex) {
@@ -185,7 +228,7 @@ enyo.kind({
 	
 	document: function(data) {
 		this.$.viewLibrary.data.push(enyo.json.parse(data.text))
-		if (this.$.viewLibrary.data.length==106) {
+		if (this.$.viewLibrary.data.length==105) {
 			this.$.viewLibrary.data.sort(enyo.bind(this, 'sortByYear'))
 			this.$.mainSpinner.hide()
 			this.$.scrim.hide()

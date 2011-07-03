@@ -138,7 +138,7 @@ enyo.kind({
 	},
 	
 	getLibrary: function(success, failure) {
-		this.oauth.get('http://api.mendeley.com/oapi/library?items=106', success, failure)
+		this.oauth.get('http://api.mendeley.com/oapi/library?items=105', success, failure)
 	},
 	
 	getDocument: function(id, success, failure) {

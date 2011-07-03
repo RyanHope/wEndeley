@@ -1,2 +1,7 @@
 .logo-large {
     background: url(../images/icon-256.png) center center no-repeat;
+}
+
+.drawer-item .icon.all-documents {
+	background-image: url(../images/all-documents.png);
+}
