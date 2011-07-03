@@ -7,6 +7,14 @@ enyo.kind({
 
 	components: [
 		{
+			kind: "Scrim",
+			layoutKind: "VFlexLayout",
+			align: "center", pack: "center",
+			components: [
+				{kind: "SpinnerLarge", name: 'mainSpinner'}
+			]
+		},
+		{
 			kind: "AppMenu",
 			components: [
 		  		{
@@ -76,14 +84,6 @@ enyo.kind({
 				{name: 'viewPapers',flex:1},
 				{name: 'viewGroups',flex:1},
 				{name: 'viewPeope',flex:1},
-				{
-					kind: "Scrim",
-					layoutKind: "VFlexLayout",
-					align: "center", pack: "center",
-					components: [
-						{kind: "SpinnerLarge", name: 'mainSpinner'}
-					]
-				}
 			]
 		},
 		{
