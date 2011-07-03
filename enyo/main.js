@@ -103,15 +103,22 @@ enyo.kind({
 	
 	getDivider: function(inMessage, inIndex) {
 		var prevYear = this.$.viewLibrary.fetch(inIndex - 1).year
-		if (!inMessage.year)
-			inMessage.year = "null"
-		if ((prevYear != inMessage.year) || (inIndex==0 && !inMessage.year)) {
+		var nextYear = this.$.viewLibrary.fetch(inIndex + 1).year
+		if (inIndex==0 && !inMessage.year) {
+			this.$.divider.setShowing(true)
+        	this.$.divider.setCaption('????')
+        	this.$.divider.canGenerate = true
+            this.$.paper.domStyles["border-top"] = "none"
+		} else if (prevYear != inMessage.year) {
 			this.$.divider.setShowing(true)
         	this.$.divider.setCaption(inMessage.year)
         	this.$.divider.canGenerate = true
             this.$.paper.domStyles["border-top"] = "none"
     	} else {
     		this.$.divider.canGenerate = false
+    	}
+    	if (nextYear != inMessage.year) {
+    		this.$.paper.domStyles["border-bottom"] = "none"
     	}
 	},
 	
