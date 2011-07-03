@@ -118,7 +118,8 @@ enyo.kind({
 			kind: "Mendeley.Client",
 			name: 'client',
 			prefs: this.prefs,
-			onOAuthReady: 'handleOAuthReady'
+			onOAuthReady: 'handleOAuthReady',
+			onFailure: 'failure'
 		})
 	},
 
@@ -150,15 +151,17 @@ enyo.kind({
 		this.$.client.getLibrary(enyo.bind(this,'library'), enyo.bind(this,'failure'))
 	},
 	
-	failure: function(data) {
-		this.error(data)
+	failure: function(inMessage) {
+		this.error(enyo.json.parse(inMessage.text).error)
+		this.$.mainSpinner.hide()
+		this.$.scrim.hide()
 	},	
 	
 	account: function() {
     	this.$.client.account()
 	},
 	
-	handleOAuthReady: function(hasAccount) {
+	handleOAuthReady: function(inSender, hasAccount) {
 		if (hasAccount)
 			this.getLibrary()
 		else

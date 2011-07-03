@@ -10,7 +10,8 @@ enyo.kind({
 	},
 	
 	events: {
-		onOAuthReady: ''
+		onOAuthReady: '',
+		onFailure: ''
 	},
 		
 	components: [
@@ -81,8 +82,8 @@ enyo.kind({
 		this.$.consumerSecret.call();
 	},
 	
-	failure: function(data) {
-		this.error(data)
+	failure: function(inMessage) {
+		this.doOnFailure(inMessage)
 	},
 	
 	initOAuth: function(secret) {
@@ -95,11 +96,11 @@ enyo.kind({
 	    })
 	    
 	    var tokens = this.prefs.get('tokens')
-	    if (tokens) {
-		    this.oauth.setAccessToken([tokens.oauth_token,tokens.oauth_token_secret])
-			this.doOAuthReady(true)
-		} else {
+	    if (tokens==null) {
 			this.doOAuthReady(false)
+		} else {
+			this.oauth.setAccessToken([tokens.oauth_token,tokens.oauth_token_secret])
+			this.doOAuthReady(true)
 		}
 	},
 	
@@ -112,7 +113,7 @@ enyo.kind({
 		var tokens = this.oauth.parseTokenRequest(data.text)
 		this.warn(tokens)
 		this.prefs.set('tokens', tokens)
-		this.oauth.get('http://api.mendeley.com/oapi/library',enyo.bind(this,'library'),enyo.bind(this,'failure'))
+		this.doOAuthReady(true)
 	},
 
 	request: function(url) {
