@@ -35,4 +35,11 @@ enyo.kind({
 		this.inherited(arguments);
 		this.reset();
 	},
+	setSelected: function(inRowIndex) {
+		if (this.selected != null) {
+			this.data[this.selected.index]._selected = false	
+		}
+		this.selected = {id:this.data[inRowIndex]._id,index:inRowIndex}
+		this.data[inRowIndex]._selected = true
+	}
 });

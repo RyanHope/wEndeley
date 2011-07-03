@@ -85,8 +85,9 @@ enyo.kind({
 		]}
 	],
 	
-	listItemClick: function(inMessage, inIndex) {
-		this.warn([inMessage, inIndex])
+	listItemClick: function(inSender, inEvent) {
+		this.$.viewLibrary.setSelected(inEvent.rowIndex)
+		this.$.viewLibrary.refresh()
 	},
 	
 	getDivider: function(inMessage, inIndex) {
@@ -120,6 +121,10 @@ enyo.kind({
 		var issue = info.issue ? '('+info.issue+')' : ''
 		var pages = info.pages ? ', '+info.pages+'.' : '.'
 		this.$.paper.setContent(authors+year+title+journal+volume+issue+pages)
+		if (info._selected)
+			this.$.paper.addClass('enyo-held')
+		else
+			this.$.paper.removeClass('enyo-held')
 	},
 	
 	initComponents: function() {
@@ -170,8 +175,14 @@ enyo.kind({
 				return this.sortByAuthor(a, b)
 	},
 	
-	document: function(data) {
-		this.$.viewLibrary.data.push(enyo.json.parse(data.text))
+	document: function(id, data) {
+		var entry = enyo.json.parse(data.text)
+		entry._id = id
+		if (this.$.viewLibrary.selected != null && this.$.viewLibrary.selected.id == id)
+			entry._selected = true
+		else
+			entry._selected = false
+		this.$.viewLibrary.data.push(entry)
 		if (this.$.viewLibrary.data.length==105) {
 			this.$.viewLibrary.data.sort(enyo.bind(this, 'sortByYear'))
 			this.$.mainSpinner.hide()
@@ -184,7 +195,7 @@ enyo.kind({
 		this.$.viewLibrary.data = []
 		var ids = enyo.json.parse(data.text).document_ids
 		for (i in ids)
-			this.$.client.getDocument(ids[i], enyo.bind(this,'document'), enyo.bind(this,'failure'))
+			this.$.client.getDocument(ids[i], enyo.bind(this,'document',ids[i]), enyo.bind(this,'failure'))
 	},
 	
 	getLibrary: function() {
