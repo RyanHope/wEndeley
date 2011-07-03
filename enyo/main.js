@@ -26,7 +26,6 @@ enyo.kind({
   		{
   			kind: "Toolbar",
   			name: 'toolbar',
-  			//className: 'enyo-toolbar-light',
   			components: [
   				{
   					kind: "TabGroup",
@@ -89,8 +88,6 @@ enyo.kind({
 		{
 			kind: 'Toolbar',
 			name: 'bottom-bar',
-			//className: 'enyo-toolbar-light',
-			//pack: "end",
 			components: [
 				{
 					kind: 'GrabButton'
@@ -101,11 +98,6 @@ enyo.kind({
 					icon: "images/icon-refresh.png",
 					onclick: 'refreshView'
 				}
-				/*{
-					kind: 'Button',
-					caption: 'Details',
-					//showing: false
-				},*/
 			]
 		}
 	],
