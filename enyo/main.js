@@ -68,6 +68,7 @@ enyo.kind({
 					height: '100%',
 					onSetupRow: 'setupRow',
 					components: [
+						{name: "divider", captureState: false, kind: "Divider", showing: false, caption: "Sometime"},
 						{name: 'paper', kind: 'Item', style: 'font-size: 65%;', allowHtml: true}
 	    			]
 				},
@@ -100,8 +101,22 @@ enyo.kind({
 		}
 	],
 	
-	setupRow: function(inSender, inMessage, inIndex) {
-		var info = enyo.json.parse(inMessage)
+	getDivider: function(inMessage, inIndex) {
+		var prevYear = this.$.viewLibrary.fetch(inIndex - 1).year
+		if (!inMessage.year)
+			inMessage.year = "null"
+		if ((prevYear != inMessage.year) || (inIndex==0 && !inMessage.year)) {
+			this.$.divider.setShowing(true)
+        	this.$.divider.setCaption(inMessage.year)
+        	this.$.divider.canGenerate = true
+            this.$.paper.domStyles["border-top"] = "none"
+    	} else {
+    		this.$.divider.canGenerate = false
+    	}
+	},
+	
+	setupRow: function(inSender, info, inIndex) {
+		this.getDivider(info, inIndex)
 		var authors = info.authors.join(', ')
 		var year = info.year ? '. ('+info.year+')' : ''
 		var title = info.title ? '. '+info.title : ''
@@ -128,9 +143,26 @@ enyo.kind({
   		this.$.viewPane.selectViewByName(inSender.getValue());
 	},
 	
+	sortByYear: function(a, b) {
+		if (!a.year && !b.year)
+			return 0
+		else if (!a.year && b.year)
+			return -1
+		else if (a.year && !b.year)
+			return 1
+		else (a.year && b.year)
+			if (a.year > b.year)
+				return -1
+			else if (a.year < b.year)
+				return 1
+			else
+				return 0			
+	},
+	
 	document: function(data) {
-		this.$.viewLibrary.data.push(data.text)
+		this.$.viewLibrary.data.push(enyo.json.parse(data.text))
 		if (this.$.viewLibrary.data.length==106) {
+			this.$.viewLibrary.data.sort(this.sortByYear)
 			this.$.mainSpinner.hide()
 			this.$.scrim.hide()
 			this.$.viewLibrary.refresh()
@@ -142,7 +174,7 @@ enyo.kind({
 		var ids = enyo.json.parse(data.text).document_ids
 		for (i in ids)
 			this.$.client.getDocument(ids[i], enyo.bind(this,'document'), enyo.bind(this,'failure'))
-	},	
+	},
 	
 	getLibrary: function() {
 		this.$.scrim.show()
