@@ -68,7 +68,7 @@ enyo.kind({
 					height: '100%',
 					onSetupRow: 'setupRow',
 					components: [
-						{name: 'paper', kind: 'Item', style: 'font-size: 65%;'}
+						{name: 'paper', kind: 'Item', style: 'font-size: 65%;', allowHtml: true}
 	    			]
 				},
 				{name: 'viewDashboard',flex:1},
@@ -101,7 +101,15 @@ enyo.kind({
 	],
 	
 	setupRow: function(inSender, inMessage, inIndex) {
-		this.$.paper.setContent(inMessage);
+		var info = enyo.json.parse(inMessage)
+		var authors = info.authors.join(', ')
+		var year = info.year ? '. ('+info.year+')' : ''
+		var title = info.title ? '. '+info.title : ''
+		var journal = info.publication_outlet ? '. <i>'+info.publication_outlet+'</i>' : ''
+		var volume = info.volume ? ', '+info.volume : ''
+		var issue = info.issue ? '('+info.issue+')' : ''
+		var pages = info.pages ? ', '+info.pages+'.' : '.'
+		this.$.paper.setContent(authors+year+title+journal+volume+issue+pages)
 	},
 	
 	initComponents: function() {

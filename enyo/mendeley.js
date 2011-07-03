@@ -86,7 +86,6 @@ enyo.kind({
 	},
 	
 	initOAuth: function(secret) {
-		this.warn(secret)
     	this.oauth = OAuth({
 	        consumerKey: '991f431a0922ecc7c79d531b504c42df04e0e11a8',
 	        consumerSecret: secret,
