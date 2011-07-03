@@ -4,6 +4,9 @@ enyo.kind({
   	kind: enyo.VFlexBox,
   	
   	prefs: new Prefs(),
+  	
+  	libraryTotalResults: 0,
+  	myLibrary: [],
 
 	components: [
 		{
@@ -182,9 +185,10 @@ enyo.kind({
 			entry._selected = true
 		else
 			entry._selected = false
-		this.$.viewLibrary.data.push(entry)
-		if (this.$.viewLibrary.data.length==105) {
-			this.$.viewLibrary.data.sort(enyo.bind(this, 'sortByYear'))
+		this.myLibrary.push(entry)
+		if (this.myLibrary.length==this.libraryTotalResults) {
+			this.myLibrary.sort(enyo.bind(this, 'sortByYear'))
+			this.$.viewLibrary.data = this.myLibrary
 			this.$.mainSpinner.hide()
 			this.$.scrim.hide()
 			this.$.viewLibrary.refresh()
@@ -192,21 +196,26 @@ enyo.kind({
 	},
 	
 	library: function(data) {
-		this.$.viewLibrary.data = []
-		var ids = enyo.json.parse(data.text).document_ids
+		var info = enyo.json.parse(data.text)
+		this.warn(info)
+		this.libraryTotalResults = info.total_results
+		var ids = info.document_ids
 		for (i in ids)
 			this.$.client.getDocument(ids[i], enyo.bind(this,'document',ids[i]), enyo.bind(this,'failure'))
+		if (info.current_page < info.total_pages-1)
+			this.$.client.getLibrary(enyo.bind(this,'library'), enyo.bind(this,'failure'), info.current_page+1)
 	},
 	
-	getLibrary: function() {
+	getLibrary: function(page) {
 		this.$.scrim.show()
 		this.$.mainSpinner.show()
 		//this.$.mainButtons.setValue('viewLibrary')
-		this.$.client.getLibrary(enyo.bind(this,'library'), enyo.bind(this,'failure'))
+		this.$.client.getLibrary(enyo.bind(this,'library'), enyo.bind(this,'failure'), page)
 	},
 	
 	refreshView: function(inSender, inEvent) {
-		this.getLibrary()
+		this.myLibrary = []
+		this.getLibrary(0)
 	},
 	
 	failure: function(inMessage) {
@@ -221,7 +230,7 @@ enyo.kind({
 	
 	handleOAuthReady: function(inSender, hasAccount) {
 		if (hasAccount)
-			this.getLibrary()
+			this.refreshView()
 		else
 			this.account()
 	}

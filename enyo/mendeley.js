@@ -137,8 +137,8 @@ enyo.kind({
     	this.$.newAccount.openAtTopCenter()
 	},
 	
-	getLibrary: function(success, failure) {
-		this.oauth.get('http://api.mendeley.com/oapi/library?items=105', success, failure)
+	getLibrary: function(success, failure, page) {
+		this.oauth.get('http://api.mendeley.com/oapi/library?page='+page, success, failure)
 	},
 	
 	getDocument: function(id, success, failure) {
