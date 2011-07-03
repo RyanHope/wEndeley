@@ -60,7 +60,17 @@ enyo.kind({
 			flex: 1,
 			name: 'viewPane',
 			components: [
-				{name: 'viewLibrary',flex:1},
+				{
+					kind: 'List2',
+					name: 'viewLibrary',
+					data: [],
+					flex:1,
+					height: '100%',
+					onSetupRow: 'setupRow',
+					components: [
+						{name: 'paper', kind: 'Item'}
+	    			]
+				},
 				{name: 'viewDashboard',flex:1},
 				{name: 'viewPapers',flex:1},
 				{name: 'viewGroups',flex:1},
@@ -82,6 +92,10 @@ enyo.kind({
 		}
 	],
 	
+	setupRow: function(inSender, inMessage, inIndex) {
+		this.$.paper.setContent(inMessage);
+	},
+	
 	initComponents: function() {
 		this.inherited(arguments)
 		this.createComponent({
@@ -98,7 +112,9 @@ enyo.kind({
 	},
 	
 	library: function(data) {
-		this.$.viewLibrary.setContent(enyo.json.stringify(data))
+		this.$.viewLibrary.setData(enyo.json.parse(data.text).document_ids)
+		this.$.viewLibrary.refresh()
+		this.log(enyo.json.parse(data.text).document_ids)
 	},	
 	
 	getLibrary: function() {
