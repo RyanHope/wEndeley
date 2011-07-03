@@ -68,7 +68,7 @@ enyo.kind({
 					height: '100%',
 					onSetupRow: 'setupRow',
 					components: [
-						{name: 'paper', kind: 'Item'}
+						{name: 'paper', kind: 'Item', style: 'font-size: 65%;'}
 	    			]
 				},
 				{name: 'viewDashboard',flex:1},
@@ -111,10 +111,20 @@ enyo.kind({
   		this.$.viewPane.selectViewByName(inSender.getValue());
 	},
 	
+	document: function(data) {
+		//this.warn(data.text)
+		this.$.viewLibrary.data.push(data.text)
+		if (this.$.viewLibrary.data.length==106)
+			this.$.viewLibrary.refresh()
+	},
+	
 	library: function(data) {
-		this.$.viewLibrary.setData(enyo.json.parse(data.text).document_ids)
-		this.$.viewLibrary.refresh()
-		this.log(enyo.json.parse(data.text).document_ids)
+		this.$.viewLibrary.data = []
+		var ids = enyo.json.parse(data.text).document_ids
+		for (i in ids)
+			this.$.client.getDocument(ids[i], enyo.bind(this,'document'), enyo.bind(this,'failure'))
+		//this.$.viewLibrary.refresh()
+		//this.log(enyo.json.parse(data.text).document_ids)
 	},	
 	
 	getLibrary: function() {
