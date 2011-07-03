@@ -90,13 +90,22 @@ enyo.kind({
 			kind: 'Toolbar',
 			name: 'bottom-bar',
 			//className: 'enyo-toolbar-light',
-			pack: "end",
+			//pack: "end",
 			components: [
 				{
+					kind: 'GrabButton'
+				},
+				{
+					name: "refresh",
+					kind: "ToolButton", 
+					icon: "images/icon-refresh.png",
+					onclick: 'refreshView'
+				}
+				/*{
 					kind: 'Button',
 					caption: 'Details',
 					//showing: false
-				},
+				},*/
 			]
 		}
 	],
@@ -188,6 +197,10 @@ enyo.kind({
 		this.$.mainSpinner.show()
 		this.$.mainButtons.setValue('viewLibrary')
 		this.$.client.getLibrary(enyo.bind(this,'library'), enyo.bind(this,'failure'))
+	},
+	
+	refreshView: function(inSender, inEvent) {
+		this.getLibrary()
 	},
 	
 	failure: function(inMessage) {
