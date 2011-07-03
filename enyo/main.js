@@ -28,6 +28,14 @@ enyo.kind({
 		},
 		{kind: "SlidingPane", flex: 1, components: [
 			{name: "left", width: "250px", components: [
+				{
+					kind: 'Toolbar',
+					name: 'left-bar',
+					className: 'enyo-toolbar-light',
+					components: [
+						{kind: 'RoundedSearchInput', hint: $L('Type here to search'), flex: 1}
+					]
+				},
 				{kind: "DividerDrawer", caption: "My Library", className: 'main-list', components: [
 					{name: 'all-documents',  kind: 'DrawerItem', className: 'drawer-item first', label: 'All Documents', icon: 'all-documents'},
 					{name: 'recently-added',  kind: 'DrawerItem', className: 'drawer-item', label: 'Recently Added', icon: 'recently-added'},
@@ -196,7 +204,6 @@ enyo.kind({
 	},
 	
 	library: function(data) {
-		var info = enyo.json.parse(data.text)
 		this.warn(info)
 		this.libraryTotalResults = info.total_results
 		var ids = info.document_ids
