@@ -84,6 +84,18 @@ enyo.kind({
 						{
 							kind: 'GrabButton'
 						},
+						{kind: "Spacer"},
+						{kind: "ListSelector", value: 2, onChange: "itemChanged", items: [
+							{caption: "Filter by Author's Keyworks", value: 1},
+					        {caption: "Filter by Authors", value: 2},
+					        {caption: "Filter by My Tags", value: 3},
+					        {caption: "Filter by Publications", value: 4},
+					    ]},
+					    {kind: "Spacer"},
+					    {kind: "ListSelector", value: 1, onChange: "itemChanged", items: [
+							{caption: "All", value: 1},
+					    ]},
+					    {kind: "Spacer"},
 						{
 							name: "refresh",
 							kind: "ToolButton", 
@@ -204,7 +216,7 @@ enyo.kind({
 	},
 	
 	library: function(data) {
-		this.warn(info)
+		var info = enyo.json.parse(data.text)
 		this.libraryTotalResults = info.total_results
 		var ids = info.document_ids
 		for (i in ids)
