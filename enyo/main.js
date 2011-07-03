@@ -74,7 +74,15 @@ enyo.kind({
 				{name: 'viewDashboard',flex:1},
 				{name: 'viewPapers',flex:1},
 				{name: 'viewGroups',flex:1},
-				{name: 'viewPeope',flex:1}
+				{name: 'viewPeope',flex:1},
+				{
+					kind: "Scrim",
+					layoutKind: "VFlexLayout",
+					align: "center", pack: "center",
+					components: [
+						{kind: "SpinnerLarge", name: 'mainSpinner'}
+					]
+				}
 			]
 		},
 		{
@@ -112,10 +120,12 @@ enyo.kind({
 	},
 	
 	document: function(data) {
-		//this.warn(data.text)
 		this.$.viewLibrary.data.push(data.text)
-		if (this.$.viewLibrary.data.length==106)
+		if (this.$.viewLibrary.data.length==106) {
+			this.$.mainSpinner.hide()
+			this.$.scrim.hide()
 			this.$.viewLibrary.refresh()
+		}
 	},
 	
 	library: function(data) {
@@ -123,11 +133,11 @@ enyo.kind({
 		var ids = enyo.json.parse(data.text).document_ids
 		for (i in ids)
 			this.$.client.getDocument(ids[i], enyo.bind(this,'document'), enyo.bind(this,'failure'))
-		//this.$.viewLibrary.refresh()
-		//this.log(enyo.json.parse(data.text).document_ids)
 	},	
 	
 	getLibrary: function() {
+		this.$.scrim.show()
+		this.$.mainSpinner.show()
 		this.$.mainButtons.setValue('viewLibrary')
 		this.$.client.getLibrary(enyo.bind(this,'library'), enyo.bind(this,'failure'))
 	},
