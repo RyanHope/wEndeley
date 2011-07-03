@@ -23,47 +23,6 @@ enyo.kind({
 	  			}
 			]
 		},
-  		/*{
-  			kind: "Toolbar",
-  			name: 'toolbar',
-  			className: 'enyo-toolbar-light',
-  			components: [
-  				{icon: 'images/sync.png', content:'Sync Library'}
-  				{
-  					kind: "TabGroup",
-  					flex: 1,
-  					name: 'mainButtons',
-  					onChange: 'myGroupClick',
-  					components: [
-		      			{
-		      				name: 'btnDashboard',
-			      			caption: "Dashboard",
-			      			value: 'viewDashboard'
-      					},
-				      	{
-				      		name: 'btnLibrary',
-				      		caption: "My Library",
-				      		value: 'viewLibrary'
-			      		},
-				      	{
-				      		name: 'btnPapers',
-				      		caption: "Papers",
-				      		value: 'viewPapers'
-			      		},
-				      	{
-				      		name: 'btnGroups',
-				      		caption: "Groups",
-				      		value: 'viewGroups'
-			      		},
-				      	{
-				      		name: 'btnPeople',
-				      		caption: "People",
-				      		value: 'viewPeople'
-			      		}
-  					]
-  				}
-  			]
-		},*/
 		{kind: "SlidingPane", flex: 1, components: [
 			{name: "left", width: "250px", components: [
 				{kind: "DividerDrawer", caption: "My Library", className: 'main-list', components: [
@@ -97,7 +56,7 @@ enyo.kind({
 							onSetupRow: 'setupRow',
 							components: [
 								{name: "divider", captureState: false, kind: "Divider", showing: false, caption: "Sometime"},
-								{name: 'paper', kind: 'Item', style: 'font-size: 65%;', allowHtml: true}
+								{name: 'paper', kind: 'Item', onclick: "listItemClick", tapHighlight: true, style: 'font-size: 65%;', allowHtml: true}
 			    			]
 						},
 						{name: 'viewDashboard',flex:1},
@@ -125,6 +84,10 @@ enyo.kind({
 	  		]}
 		]}
 	],
+	
+	listItemClick: function(inMessage, inIndex) {
+		this.warn([inMessage, inIndex])
+	},
 	
 	getDivider: function(inMessage, inIndex) {
 		var prevYear = this.$.viewLibrary.fetch(inIndex - 1).year
