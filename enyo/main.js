@@ -26,7 +26,7 @@ enyo.kind({
 	  			}
 			]
 		},
-		{kind: "SlidingPane", flex: 1, components: [
+		{kind: "SlidingPane", name: 'views', flex: 1, components: [
 			{name: "left", width: "250px", components: [
 				{
 					kind: 'Toolbar',
@@ -67,7 +67,7 @@ enyo.kind({
 					]
 				}
 			]},
-	  		{name: "right", flex: 1, components: [
+	  		{name: "middle", flex: 1, components: [
 	  			{
 					kind: "Pane",
 					flex: 1,
@@ -113,6 +113,43 @@ enyo.kind({
 					    {kind: "Spacer"}
 					]
 				}
+	  		]},
+	  		{name: "right", width: "250px", dismissible: true, showing: false, components: [
+	  			{
+					kind: 'Toolbar',
+					name: 'right-bar-top',
+					className: 'enyo-toolbar-light',
+					components: [
+						{kind: "RadioGroup", name: 'rightGroup', components: [
+			        		{caption: "Details", value: "details"},
+			        		{caption: "Notes", value: "notes"},
+				      	]}
+					]
+				},
+		      	{kind: 'FadeScroller', style: 'height: 100%;', flex:1, components: [
+		      		{
+						kind: 'List2',
+						name: 'details',
+						data: [],
+						flex:1,
+						height: '100%',
+						onSetupRow: 'setupDetailsRow',
+						components: [
+							{name: "detailDivider", captureState: false, kind: "Divider", showing: false, caption: "Sometime"},
+							{name: 'detail', kind: 'Item', className: 'first last', onclick: "detailItemClick", tapHighlight: false, style: 'font-size: 65%;', allowHtml: true}
+		    			]
+					}
+		      	]},
+		      	{
+					kind: 'Toolbar',
+					name: 'bottom-bar-right',
+					className: 'enyo-toolbar-light',
+					components: [
+						{
+							kind: 'GrabButton'
+						}
+					]
+				}
 	  		]}
 		]}
 	],
@@ -120,6 +157,15 @@ enyo.kind({
 	listItemClick: function(inSender, inEvent) {
 		this.$.viewLibrary.setSelected(inEvent.rowIndex)
 		this.$.viewLibrary.refresh()
+		var paper = this.$.viewLibrary.fetch(inEvent.rowIndex)
+		this.$.details.data = []
+		for (var key in paper) {
+			if (key[0] != '_')
+				this.$.details.data.push([key,paper[key]])
+		}
+		this.$.rightGroup.setValue('details')
+		this.$.right.setShowing(true)
+		this.$.details.refresh()
 	},
 	
 	getDivider: function(inMessage, inIndex) {
@@ -157,6 +203,13 @@ enyo.kind({
 			this.$.paper.addClass('enyo-held')
 		else
 			this.$.paper.removeClass('enyo-held')
+	},
+	
+	setupDetailsRow: function(inSender, info, inIndex) {
+		this.$.detailDivider.setShowing(true)
+		this.$.detailDivider.setCaption(info[0])
+		this.$.detailDivider.canGenerate = true
+		this.$.detail.setContent(info[1])
 	},
 	
 	initComponents: function() {

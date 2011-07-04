@@ -2,10 +2,10 @@
     background: url(../images/icon-256.png) center center no-repeat;
 }
 
-.main-list .drawer-item.first {
+.first {
 	border-top: none;
 }
-.main-list .drawer-item.last {
+.last {
 	border-bottom: none;
 }
 
