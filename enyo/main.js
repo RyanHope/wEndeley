@@ -7,6 +7,8 @@ enyo.kind({
   	
   	libraryTotalResults: 0,
   	myLibrary: [],
+  	
+  	rightPaneLastViewed: 'detailsView',
 
 	components: [
 		{
@@ -120,26 +122,31 @@ enyo.kind({
 					name: 'right-bar-top',
 					className: 'enyo-toolbar-light',
 					components: [
-						{kind: "RadioGroup", name: 'rightGroup', components: [
-			        		{caption: "Details", value: "details"},
-			        		{caption: "Notes", value: "notes"},
+						{kind: "RadioGroup", name: 'rightGroup', onclick: "myGroupClick", components: [
+			        		{caption: "Details", value: "detailsView"},
+			        		{caption: "Notes", value: "notesView"},
 				      	]}
 					]
 				},
-		      	{kind: 'FadeScroller', style: 'height: 100%;', flex:1, components: [
-		      		{
-						kind: 'List2',
-						name: 'details',
-						data: [],
-						flex:1,
-						height: '100%',
-						onSetupRow: 'setupDetailsRow',
-						components: [
-							{name: "detailDivider", captureState: false, kind: "Divider", showing: false, caption: "Sometime"},
-							{name: 'detail', kind: 'Item', className: 'first last', onclick: "detailItemClick", tapHighlight: false, style: 'font-size: 65%;', allowHtml: true}
-		    			]
-					}
-		      	]},
+				{kind: 'Pane', flex: 1, name: 'rightMain', components: [
+					{name: 'detailsView', flex: 1, components: [
+				      	{kind: 'FadeScroller', style: 'height: 100%;', flex:1, components: [
+				      		{
+								kind: 'List2',
+								name: 'details',
+								data: [],
+								flex:1,
+								height: '100%',
+								onSetupRow: 'setupDetailsRow',
+								components: [
+									{name: "detailDivider", captureState: false, kind: "Divider", showing: false, caption: "Sometime"},
+									{name: 'detail', kind: 'Item', className: 'first last', onclick: "detailItemClick", tapHighlight: false, style: 'font-size: 65%;', allowHtml: true}
+				    			]
+							}
+				      	]}
+			      	]},
+					{name: 'notesView', flex: 1}
+				]},
 		      	{
 					kind: 'Toolbar',
 					name: 'bottom-bar-right',
@@ -163,7 +170,7 @@ enyo.kind({
 			if (key[0] != '_')
 				this.$.details.data.push([key,paper[key]])
 		}
-		this.$.rightGroup.setValue('details')
+		this.$.rightGroup.setValue(this.rightPaneLastViewed)
 		this.$.right.setShowing(true)
 		this.$.details.refresh()
 	},
@@ -224,8 +231,10 @@ enyo.kind({
 	},
 
 	myGroupClick: function(inSender, e) {
-  		this.warn("Current selection: " + inSender.getValue())
-  		this.$.viewPane.selectViewByName(inSender.getValue());
+		this.rightPaneLastViewed = inSender.getValue()
+  		this.$.rightMain.selectViewByName(this.rightPaneLastViewed)
+  		/*if (this.rightPaneLastViewed == 'detailsView')
+  			this.$.details.refresh()*/
 	},
 	
 	sortByAuthor: function(a ,b) {
