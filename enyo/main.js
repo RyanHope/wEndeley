@@ -1,7 +1,8 @@
 enyo.kind({
 	
   	name: "Mendeley.Main",
-  	kind: enyo.VFlexBox,
+  	kind: enyo.HFlexBox,
+  	className: 'main',
   	
   	prefs: new Prefs(),
   	
@@ -29,7 +30,7 @@ enyo.kind({
 			]
 		},
 		{kind: "SlidingPane", name: 'views', flex: 1, components: [
-			{name: "left", width: "250px", components: [
+			{name: "left", width: "25%", fixedWidth: true, components: [
 				{
 					kind: 'Toolbar',
 					name: 'left-bar',
@@ -40,13 +41,13 @@ enyo.kind({
 				},
 				{kind: 'FadeScroller', flex:1, components: [
 					{kind: "DividerDrawer", caption: "My Library", className: 'main-list', components: [
-						{name: 'all-documents',  kind: 'DrawerItem', className: 'drawer-item first', label: 'All Documents', icon: 'all-documents'},
-						{name: 'recently-added',  kind: 'DrawerItem', className: 'drawer-item', label: 'Recently Added', icon: 'recently-added'},
-						{name: 'favorites',  kind: 'DrawerItem', className: 'drawer-item', label: 'Favorites', icon: 'favorites'},
-						{name: 'needs-review',  kind: 'DrawerItem', className: 'drawer-item', label: 'Needs Review', icon: 'needs-review'},
-						{name: 'my-publications',  kind: 'DrawerItem', className: 'drawer-item', label: 'My Publications', icon: 'my-publications'},
-						{name: 'unsorted',  kind: 'DrawerItem', className: 'drawer-item', label: 'Unsorted', icon: 'unsorted'},
-						{name: 'create-folder',  kind: 'DrawerItem', className: 'drawer-item last', label: 'Create Folder...'}
+						{name: 'all-documents',  kind: 'DrawerItem', className: 'drawer-item first', label: 'All Documents', icon: 'all-documents', onclick: 'showDocs'},
+						{name: 'recently-added',  kind: 'DrawerItem', className: 'drawer-item', label: 'Recently Added', icon: 'recently-added', onclick: 'showDocs'},
+						{name: 'favorites',  kind: 'DrawerItem', className: 'drawer-item', label: 'Favorites', icon: 'favorites', onclick: 'showDocs'},
+						{name: 'needs-review',  kind: 'DrawerItem', className: 'drawer-item', label: 'Needs Review', icon: 'needs-review', onclick: 'showDocs'},
+						{name: 'my-publications',  kind: 'DrawerItem', className: 'drawer-item', label: 'My Publications', icon: 'my-publications', onclick: 'showDocs'},
+						{name: 'unsorted',  kind: 'DrawerItem', className: 'drawer-item', label: 'Unsorted', icon: 'unsorted', onclick: 'showDocs'},
+						{name: 'create-folder',  kind: 'DrawerItem', className: 'drawer-item last', label: 'Create Folder...', onclick: 'showDocs'}
 					]},
 					{kind: "DividerDrawer", caption: "Groups", className: 'main-list', components: [
 						{name: 'create-group',  kind: 'DrawerItem', className: 'drawer-item first last', label: 'Create Group...'}
@@ -69,29 +70,18 @@ enyo.kind({
 					]
 				}
 			]},
-	  		{name: "middle", flex: 1, components: [
+	  		{name: "middle", flex: 1, dismissible: true, showing: true, components: [
 	  			{
-					kind: "Pane",
-					flex: 1,
-					name: 'viewPane',
+					kind: 'List2',
+					name: 'viewLibrary',
+					data: [],
+					flex:1,
+					height: '100%',
+					onSetupRow: 'setupRow',
 					components: [
-						{
-							kind: 'List2',
-							name: 'viewLibrary',
-							data: [],
-							flex:1,
-							height: '100%',
-							onSetupRow: 'setupRow',
-							components: [
-								{name: "divider", captureState: false, kind: "Divider", showing: false, caption: "Sometime"},
-								{name: 'paper', kind: 'Item', onclick: "listItemClick", tapHighlight: false, style: 'font-size: 65%;', allowHtml: true}
-			    			]
-						},
-						{name: 'viewDashboard',flex:1},
-						{name: 'viewPapers',flex:1},
-						{name: 'viewGroups',flex:1},
-						{name: 'viewPeope',flex:1},
-					]
+						{name: "divider", captureState: false, kind: "Divider", showing: false, caption: "Sometime"},
+						{name: 'paper', kind: 'Item', onclick: "listItemClick", tapHighlight: false, style: 'font-size: 65%;', allowHtml: true}
+	    			]
 				},
 				{
 					kind: 'Toolbar',
@@ -116,7 +106,7 @@ enyo.kind({
 					]
 				}
 	  		]},
-	  		{name: "right", width: "250px", dismissible: true, showing: false, components: [
+	  		{name: "right", width: "25%", dismissible: true, showing: false, components: [
 	  			{
 					kind: 'Toolbar',
 					name: 'right-bar-top',
@@ -160,6 +150,11 @@ enyo.kind({
 	  		]}
 		]}
 	],
+	
+	showDocs: function(inSender, inEvent) {
+		if (inSender.name=='all-documents')
+			this.$.middle.setShowing(true)
+	},
 	
 	listItemClick: function(inSender, inEvent) {
 		this.$.viewLibrary.setSelected(inEvent.rowIndex)
@@ -233,8 +228,6 @@ enyo.kind({
 	myGroupClick: function(inSender, e) {
 		this.rightPaneLastViewed = inSender.getValue()
   		this.$.rightMain.selectViewByName(this.rightPaneLastViewed)
-  		/*if (this.rightPaneLastViewed == 'detailsView')
-  			this.$.details.refresh()*/
 	},
 	
 	sortByAuthor: function(a ,b) {

@@ -11,13 +11,13 @@ enyo.kind({
 	},
 	
 	components: [
-		{name: 'icon', className: 'icon'},//style: 'background-image: url(images/all-documents.png); background-position: left center; background-repeat: no-repeat;'
+		{name: 'icon', className: 'icon'},
 		{name: 'text', flex: 1, style: 'font-size: 90%;'},
 	],
 	
 	rendered: function() {
-		this.$.icon.addClass(this.icon);
-		this.$.text.setContent(this.label);
+		this.$.icon.addClass(this.icon)
+		this.$.text.setContent(this.label)
 	},
 	
-});
+})
