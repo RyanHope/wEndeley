@@ -54,18 +54,18 @@ enyo.kind({
 					]},
 				]},
 				{
-							kind: 'Toolbar',
-							name: 'left-bottom-bar',
-							className: 'enyo-toolbar-light',
-							components: [
-								{
-									name: "refresh",
-									kind: "ToolButton",
-									icon: "images/icon-refresh.png",
-									onclick: 'refreshView'
-								}
-							]
+					kind: 'Toolbar',
+					name: 'left-bottom-bar',
+					className: 'enyo-toolbar-light',
+					components: [
+						{
+							name: "refresh",
+							kind: "ToolButton",
+							icon: "images/icon-refresh.png",
+							onclick: 'refreshView'
 						}
+					]
+				}
 			]},
 	  		{name: "right", flex: 1, components: [
 	  			{
@@ -82,7 +82,7 @@ enyo.kind({
 							onSetupRow: 'setupRow',
 							components: [
 								{name: "divider", captureState: false, kind: "Divider", showing: false, caption: "Sometime"},
-								{name: 'paper', kind: 'Item', onclick: "listItemClick", tapHighlight: true, style: 'font-size: 65%;', allowHtml: true}
+								{name: 'paper', kind: 'Item', onclick: "listItemClick", tapHighlight: false, style: 'font-size: 65%;', allowHtml: true}
 			    			]
 						},
 						{name: 'viewDashboard',flex:1},
