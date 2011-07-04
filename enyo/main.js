@@ -36,21 +36,36 @@ enyo.kind({
 						{kind: 'RoundedSearchInput', hint: $L('Type here to search'), flex: 1}
 					]
 				},
-				{kind: "DividerDrawer", caption: "My Library", className: 'main-list', components: [
-					{name: 'all-documents',  kind: 'DrawerItem', className: 'drawer-item first', label: 'All Documents', icon: 'all-documents'},
-					{name: 'recently-added',  kind: 'DrawerItem', className: 'drawer-item', label: 'Recently Added', icon: 'recently-added'},
-					{name: 'favorites',  kind: 'DrawerItem', className: 'drawer-item', label: 'Favorites', icon: 'favorites'},
-					{name: 'needs-review',  kind: 'DrawerItem', className: 'drawer-item', label: 'Needs Review', icon: 'needs-review'},
-					{name: 'my-publications',  kind: 'DrawerItem', className: 'drawer-item', label: 'My Publications', icon: 'my-publications'},
-					{name: 'unsorted',  kind: 'DrawerItem', className: 'drawer-item', label: 'Unsorted', icon: 'unsorted'},
-					{name: 'create-folder',  kind: 'DrawerItem', className: 'drawer-item last', label: 'Create Folder...'}
+				{kind: 'FadeScroller', flex:1, components: [
+					{kind: "DividerDrawer", caption: "My Library", className: 'main-list', components: [
+						{name: 'all-documents',  kind: 'DrawerItem', className: 'drawer-item first', label: 'All Documents', icon: 'all-documents'},
+						{name: 'recently-added',  kind: 'DrawerItem', className: 'drawer-item', label: 'Recently Added', icon: 'recently-added'},
+						{name: 'favorites',  kind: 'DrawerItem', className: 'drawer-item', label: 'Favorites', icon: 'favorites'},
+						{name: 'needs-review',  kind: 'DrawerItem', className: 'drawer-item', label: 'Needs Review', icon: 'needs-review'},
+						{name: 'my-publications',  kind: 'DrawerItem', className: 'drawer-item', label: 'My Publications', icon: 'my-publications'},
+						{name: 'unsorted',  kind: 'DrawerItem', className: 'drawer-item', label: 'Unsorted', icon: 'unsorted'},
+						{name: 'create-folder',  kind: 'DrawerItem', className: 'drawer-item last', label: 'Create Folder...'}
+					]},
+					{kind: "DividerDrawer", caption: "Groups", className: 'main-list', components: [
+						{name: 'create-group',  kind: 'DrawerItem', className: 'drawer-item first last', label: 'Create Group...'}
+					]},
+					{kind: "DividerDrawer", caption: "Trash", className: 'main-list', components: [
+						{name: 'trash',  kind: 'DrawerItem', className: 'drawer-item first last', label: 'All Deleted Documents', icon: 'trash'}
+					]},
 				]},
-				{kind: "DividerDrawer", caption: "Groups", className: 'main-list', components: [
-					{name: 'create-group',  kind: 'DrawerItem', className: 'drawer-item first last', label: 'Create Group...'}
-				]},
-				{kind: "DividerDrawer", caption: "Trash", className: 'main-list', components: [
-					{name: 'trash',  kind: 'DrawerItem', className: 'drawer-item first last', label: 'All Deleted Documents', icon: 'trash'}
-				]}
+				{
+							kind: 'Toolbar',
+							name: 'left-bottom-bar',
+							className: 'enyo-toolbar-light',
+							components: [
+								{
+									name: "refresh",
+									kind: "ToolButton",
+									icon: "images/icon-refresh.png",
+									onclick: 'refreshView'
+								}
+							]
+						}
 			]},
 	  		{name: "right", flex: 1, components: [
 	  			{
@@ -95,13 +110,7 @@ enyo.kind({
 					    {kind: "ListSelector", value: 1, onChange: "itemChanged", items: [
 							{caption: "All", value: 1},
 					    ]},
-					    {kind: "Spacer"},
-						{
-							name: "refresh",
-							kind: "ToolButton", 
-							icon: "images/icon-refresh.png",
-							onclick: 'refreshView'
-						}
+					    {kind: "Spacer"}
 					]
 				}
 	  		]}
