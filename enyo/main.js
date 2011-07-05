@@ -30,7 +30,7 @@ enyo.kind({
 			]
 		},
 		{kind: "SlidingPane", name: 'views', flex: 1, components: [
-			{name: "left", width: "25%", fixedWidth: true, components: [
+			{name: "left", width: "27%", fixedWidth: true, components: [
 				{
 					kind: 'Toolbar',
 					name: 'left-bar',
@@ -70,7 +70,7 @@ enyo.kind({
 					]
 				}
 			]},
-	  		{name: "middle", flex: 1, dismissible: true, showing: true, components: [
+	  		{name: "middle", flex: 2, components: [
 	  			{
 					kind: 'List2',
 					name: 'viewLibrary',
@@ -106,7 +106,7 @@ enyo.kind({
 					]
 				}
 	  		]},
-	  		{name: "right", width: "25%", dismissible: true, showing: false, components: [
+	  		{name: "right", width: "27%", dismissible: true, showing: false, components: [
 	  			{
 					kind: 'Toolbar',
 					name: 'right-bar-top',
