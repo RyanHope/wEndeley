@@ -80,7 +80,7 @@ enyo.kind({
 					onSetupRow: 'setupRow',
 					components: [
 						{name: "divider", captureState: false, kind: "Divider", showing: false, caption: "Sometime"},
-						{name: 'paper', kind: 'Item', onclick: "listItemClick", tapHighlight: false, style: 'font-size: 65%;', allowHtml: true}
+						{name: 'paper', kind: 'DocumentItem', onDocClick: 'listItemClick', /*onclick: "listItemClick",*/}
 	    			]
 				},
 				{
@@ -157,9 +157,10 @@ enyo.kind({
 	},
 	
 	listItemClick: function(inSender, inEvent) {
-		this.$.viewLibrary.setSelected(inEvent.rowIndex)
+		var row = inSender.rowIndex
+		this.$.viewLibrary.setSelected(row)
 		this.$.viewLibrary.refresh()
-		var paper = this.$.viewLibrary.fetch(inEvent.rowIndex)
+		var paper = this.$.viewLibrary.fetch(row)
 		this.$.details.data = []
 		for (var key in paper) {
 			if (key[0] != '_')
@@ -192,15 +193,37 @@ enyo.kind({
 	},
 	
 	setupRow: function(inSender, info, inIndex) {
+
 		this.getDivider(info, inIndex)
-		var authors = info.authors.join(', ')
-		var year = info.year ? '. ('+info.year+')' : ''
-		var title = info.title ? '. '+info.title : ''
-		var journal = info.publication_outlet ? '. <i>'+info.publication_outlet+'</i>' : ''
-		var volume = info.volume ? ', '+info.volume : ''
-		var issue = info.issue ? '('+info.issue+')' : ''
-		var pages = info.pages ? ', '+info.pages+'.' : '.'
-		this.$.paper.setContent(authors+year+title+journal+volume+issue+pages)
+		
+		this.$.paper.rowIndex = inIndex
+
+		if (info.title)
+			this.$.paper.$.title.setContent(info.title)
+		if (info.authors)
+			this.$.paper.$.authors.setContent(info.authors.join('; '))
+		if (info.publication_outlet)
+			this.$.paper.$.pubOutlet.setContent(info.publication_outlet)
+		if (info.volume) {
+			this.$.paper.$.volume.setContent(info.volume)
+			this.$.paper.$.volume.addClass('smallLeftPad')
+		}
+		if (info.issue) {
+			this.$.paper.$.issue.setContent('('+info.issue+')')
+			this.$.paper.$.issue.addClass('smallLeftPad')
+		}
+		if (info.pages) {
+			this.$.paper.$.pages.setContent('p. '+info.pages)
+			this.$.paper.$.pages.addClass('smallLeftPad')
+		}			
+		if (info.dateAccessed==null)
+			this.$.paper.$.read.addClass('readNo')
+		else
+			this.$.paper.$.read.addClass('readYes')
+
+		if (info.files.length>0)
+			this.$.paper.$.pdf.addClass('pdf')
+
 		if (info._selected)
 			this.$.paper.addClass('enyo-held')
 		else

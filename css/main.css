@@ -9,6 +9,46 @@
 	border-bottom: none;
 }
 
+.docInfo {
+	padding-left: 8px;
+	padding-right 8px;
+}
+
+.smallLeftPad {
+	padding-left: 1ex;
+}
+
+.docIcon {
+	width: 32px;
+	text-align: left;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+.docIcon.favNo {
+	height: 16px;
+	background-image: url(../images/favorite-0.png);
+}
+.docIcon.favYes {
+	height: 16px;
+	background-image: url(../images/favorite-1.png);
+}
+.docIcon.readNo {
+	height: 16px;
+	background-image: url(../images/read-0.png);
+}
+.docIcon.readYes {
+	height: 16px;
+	background-image: url(../images/read-1.png);
+}
+.docIcon.pdf {
+	height: 16px;
+	background-image: url(../images/pdf.png);
+}
+.docIcon.middle {
+	padding-top: 6px;
+	padding-bottom: 6px;
+}
+
 .main-list .icon {
 	width: 32px;
 	height: 22px;
@@ -25,7 +65,7 @@
 	background-image: url(../images/recently-added.png);
 }
 .main-list .icon.favorites {
-	background-image: url(../images/favorites.png);
+	background-image: url(../images/favorite.png);
 }
 .main-list .icon.needs-review {
 	background-image: url(../images/needs-review.png);
