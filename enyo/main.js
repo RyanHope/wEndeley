@@ -80,7 +80,7 @@ enyo.kind({
 					onSetupRow: 'setupRow',
 					components: [
 						{name: "divider", captureState: false, kind: "Divider", showing: false, caption: "Sometime"},
-						{name: 'paper', kind: 'DocumentItem', onDocClick: 'listItemClick', /*onclick: "listItemClick",*/}
+						{name: 'paper', kind: 'DocumentItem', onFavClick: 'favClick', onReadClick: 'readClick', onPdfClick: 'pdfClick', onDocClick: 'listItemClick'}
 	    			]
 				},
 				{
@@ -151,6 +151,23 @@ enyo.kind({
 		]}
 	],
 	
+	favClick: function(inSender, inEvent) {
+		if (this.myLibrary[inSender.rowIndex]._isFavorite)
+			this.myLibrary[inSender.rowIndex]._isFavorite = false
+		else
+			this.myLibrary[inSender.rowIndex]._isFavorite = true
+		this.$.viewLibrary.data = this.myLibrary
+		this.$.viewLibrary.refresh()
+	},
+	
+	readClick: function(inSender, inEvent) {
+		this.warn(['Read',inSender,inEvent])
+	},
+	
+	pdfClick: function(inSender, inEvent) {
+		this.warn(['Pdf',inSender,inEvent])
+	},
+	
 	showDocs: function(inSender, inEvent) {
 		if (inSender.name=='all-documents')
 			this.$.middle.setShowing(true)
@@ -220,6 +237,14 @@ enyo.kind({
 			this.$.paper.$.read.addClass('readNo')
 		else
 			this.$.paper.$.read.addClass('readYes')
+		
+		if (info._isFavorite) {
+			this.$.paper.$.fav.removeClass('favNo')
+			this.$.paper.$.fav.addClass('favYes')
+		} else {
+			this.$.paper.$.fav.removeClass('favYes')
+			this.$.paper.$.fav.addClass('favNo')
+		}
 
 		if (info.files.length>0)
 			this.$.paper.$.pdf.addClass('pdf')
@@ -288,6 +313,7 @@ enyo.kind({
 	document: function(id, data) {
 		var entry = enyo.json.parse(data.text)
 		entry._id = id
+		entry._isFavorite = false
 		if (this.$.viewLibrary.selected != null && this.$.viewLibrary.selected.id == id)
 			entry._selected = true
 		else

@@ -5,20 +5,25 @@ enyo.kind({
 	tapHighlight: false,
 	
 	published: {
-		rowIndex: -1
+		rowIndex: -1,
 	},
 	
 	events: {
-		onDocClick: ''
+		onDocClick: '',
+		onFavClick: '',
+		onReadClick: '',
+		onPdfClick: ''
 	},
 	
 	components: [
-		{kind: 'VFlexBox', pack: 'middle', components: [
-			{name: 'fav', className: 'docIcon favNo'},
-			{name: 'read', className: 'docIcon middle'},
-			{name: 'pdf', className: 'docIcon'}
+		{kind: 'VFlexBox', components: [
+			{kind: "Spacer"},
+			{name: 'fav', onclick: 'favClick', className: 'docIcon'},
+			{name: 'read', onclick: 'readClick', className: 'docIcon middle'},
+			{name: 'pdf', onclick: 'pdfClick', className: 'docIcon'},
+			{kind: "Spacer"}
 		]},
-		{kind: 'VFlexBox', pack: 'middle', flex: 1, className: 'docInfo', onclick: 'docClick', components: [
+		{kind: 'VFlexBox', flex: 1, className: 'docInfo', onclick: 'docClick', components: [
 			{name: 'title', style: 'font-size: 90%;	font-weight: bold;'},
 			{name: 'authors', style: 'font-size: 80%;'},
 			{kind: 'HFlexBox', components: [
@@ -28,8 +33,19 @@ enyo.kind({
 				{name: 'pages', style: 'font-size: 80%'},
 			]}
 		]}
-		//{name: 'text', flex: 1, style: '; font-size: 65%;', allowHtml: true},
 	],
+	
+	favClick: function(inSender, inEvent) {
+		this.doFavClick(inSender, inEvent)	
+	},
+	
+	readClick: function(inSender, inEvent) {
+		this.doReadClick(inSender, inEvent)	
+	},
+	
+	pdfClick: function(inSender, inEvent) {
+		this.doPdfClick(inSender, inEvent)	
+	},
 	
 	docClick: function(inSender, inEvent) {
 		this.doDocClick(inSender, inEvent)	

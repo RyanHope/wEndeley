@@ -83,7 +83,7 @@ enyo.kind({
 	},
 	
 	failure: function(inMessage) {
-		this.doOnFailure(inMessage)
+		this.doFailure(inMessage)
 	},
 	
 	initOAuth: function(secret) {
