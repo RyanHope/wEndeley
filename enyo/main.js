@@ -142,9 +142,8 @@ enyo.kind({
 					name: 'bottom-bar-right',
 					className: 'enyo-toolbar-light',
 					components: [
-						{
-							kind: 'GrabButton'
-						}
+						{kind: 'GrabButton'},
+						{kind: 'Button', content: 'Add Field'}
 					]
 				}
 	  		]}
