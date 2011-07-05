@@ -13,6 +13,7 @@ enyo.kind({
 	components: [
 		{name: 'icon', className: 'icon'},
 		{name: 'text', flex: 1, style: 'font-size: 90%;'},
+		{name: "count", className: "folder-count", showing: false}
 	],
 	
 	rendered: function() {

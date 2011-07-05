@@ -82,3 +82,15 @@
 .main-list .icon.trash {
 	background-image: url(../images/trash.png);
 }
+
+.folder-count {
+	position: relative;
+	/*right: 12px;*/
+	float: right;
+	padding: 4px 0px;
+	border-width: 0px 11px 0px 11px;
+	-webkit-border-image: url(../images/dashboard-unread.png) 0 11 0 11;
+	color: white;
+	font-size: 16px;
+	font-weight: bold;
+}

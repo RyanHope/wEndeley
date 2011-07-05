@@ -41,16 +41,16 @@ enyo.kind({
 				},
 				{kind: 'FadeScroller', flex:1, components: [
 					{kind: "DividerDrawer", caption: "My Library", className: 'main-list', components: [
-						{name: 'all-documents',  kind: 'DrawerItem', className: 'drawer-item first', label: 'All Documents', icon: 'all-documents', onclick: 'showDocs'},
-						{name: 'recently-added',  kind: 'DrawerItem', className: 'drawer-item', label: 'Recently Added', icon: 'recently-added', onclick: 'showDocs'},
+						{name: 'allDocuments',  kind: 'DrawerItem', className: 'drawer-item first', label: 'All Documents', icon: 'all-documents', onclick: 'showDocs'},
+						{name: 'recentlyAdded',  kind: 'DrawerItem', className: 'drawer-item', label: 'Recently Added', icon: 'recently-added', onclick: 'showDocs'},
 						{name: 'favorites',  kind: 'DrawerItem', className: 'drawer-item', label: 'Favorites', icon: 'favorites', onclick: 'showDocs'},
-						{name: 'needs-review',  kind: 'DrawerItem', className: 'drawer-item', label: 'Needs Review', icon: 'needs-review', onclick: 'showDocs'},
-						{name: 'my-publications',  kind: 'DrawerItem', className: 'drawer-item', label: 'My Publications', icon: 'my-publications', onclick: 'showDocs'},
+						{name: 'needsReview',  kind: 'DrawerItem', className: 'drawer-item', label: 'Needs Review', icon: 'needs-review', onclick: 'showDocs'},
+						{name: 'myPublications',  kind: 'DrawerItem', className: 'drawer-item', label: 'My Publications', icon: 'my-publications', onclick: 'showDocs'},
 						{name: 'unsorted',  kind: 'DrawerItem', className: 'drawer-item', label: 'Unsorted', icon: 'unsorted', onclick: 'showDocs'},
-						{name: 'create-folder',  kind: 'DrawerItem', className: 'drawer-item last', label: 'Create Folder...', onclick: 'showDocs'}
+						{name: 'createFolder',  kind: 'DrawerItem', className: 'drawer-item last', label: 'Create Folder...', onclick: 'showDocs'}
 					]},
 					{kind: "DividerDrawer", caption: "Groups", className: 'main-list', components: [
-						{name: 'create-group',  kind: 'DrawerItem', className: 'drawer-item first last', label: 'Create Group...'}
+						{name: 'createGroup',  kind: 'DrawerItem', className: 'drawer-item first last', label: 'Create Group...'}
 					]},
 					{kind: "DividerDrawer", caption: "Trash", className: 'main-list', components: [
 						{name: 'trash',  kind: 'DrawerItem', className: 'drawer-item first last', label: 'All Deleted Documents', icon: 'trash'}
@@ -324,6 +324,8 @@ enyo.kind({
 			this.$.viewLibrary.data = this.myLibrary
 			this.$.mainSpinner.hide()
 			this.$.scrim.hide()
+			this.$.allDocuments.$.count.setContent(this.myLibrary.length)
+			this.$.allDocuments.$.count.setShowing(true)
 			this.$.viewLibrary.refresh()
 		}
 	},
