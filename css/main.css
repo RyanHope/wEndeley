@@ -19,34 +19,21 @@
 }
 
 .docIcon {
-	width: 32px;
+	width: 24px;
+	height: 24px;
 	text-align: left;
-	background-position: center center;
+	background-image: url(../images/buttons.png);
 	background-repeat: no-repeat;
 }
-.docIcon.favNo {
-	height: 16px;
-	background-image: url(../images/favorite-0.png);
-}
-.docIcon.favYes {
-	height: 16px;
-	background-image: url(../images/favorite-1.png);
-}
-.docIcon.readNo {
-	height: 16px;
-	background-image: url(../images/read-0.png);
-}
-.docIcon.readYes {
-	height: 16px;
-	background-image: url(../images/read-1.png);
-}
-.docIcon.pdf {
-	height: 16px;
-	background-image: url(../images/pdf.png);
-}
+.docIcon.favNo {background-position: 0px 0px;}
+.docIcon.favYes {background-position: 0px -24px;}
+.docIcon.readNo {background-position: -24px 0px;}
+.docIcon.readYes {background-position: -24px -24px;}
+.docIcon.pdf {background-position: -48px -24px;}
+
 .docIcon.middle {
-	padding-top: 8px;
-	padding-bottom: 8px;
+	margin-top: 4px;
+	margin-bottom: 4px;
 }
 
 .main-list .icon {
