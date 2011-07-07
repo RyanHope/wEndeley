@@ -13,6 +13,7 @@ enyo.depends(
 	"enyo/document-item.js",
 	"enyo/list.js",
 	"enyo/popup.js",
+	"enyo/prefs.js",
 	"enyo/mendeley.js",
 	"enyo/main.js"
 

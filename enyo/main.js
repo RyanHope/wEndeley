@@ -24,10 +24,8 @@ enyo.kind({
 		{
 			kind: "AppMenu",
 			components: [
-		  		{
-		  			caption: "Account",
-		  			onclick: "account"
-	  			}
+				{caption: "Preferences", onclick: "preferences"},
+		  		{caption: "Account", onclick: "account"},
 			]
 		},
 		{kind: "SlidingPane", name: 'views', flex: 1, components: [
@@ -280,9 +278,14 @@ enyo.kind({
 		this.createComponent({
 			kind: "Mendeley.Client",
 			name: 'client',
-			prefs: this.prefs,
 			onOAuthReady: 'handleOAuthReady',
-			onFailure: 'failure'
+			onFailure: 'failure',
+			prefs: this.prefs
+		})
+		this.createComponent({
+			kind: 'Preferences',
+			name: 'preferences',
+			prefs: this.prefs
 		})
 	},
 
@@ -363,7 +366,11 @@ enyo.kind({
 		this.error(enyo.json.parse(inMessage.text).error)
 		this.$.mainSpinner.hide()
 		this.$.scrim.hide()
-	},	
+	},
+	
+	preferences: function() {
+		this.$.preferences.openAtTopCenter()	
+	},
 	
 	account: function() {
     	this.$.client.account()
