@@ -8,6 +8,7 @@ enyo.depends(
 
 	"models/prefs.js",
 	
+	"enyo/plugin.js",
 	"enyo/doc-menu.js",
 	"enyo/drawer-item.js",
 	"enyo/document-item.js",

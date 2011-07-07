@@ -4,6 +4,7 @@
 	"version" : "1.0.0",
 	"vendor" : "Ryan Hope",
 	"type" : "web",
+	"plug-ins" : true,
 	"noDeprecatedStyles" : true,
   	"main" : "index.html",
   	"icon" : "images/icon-64.png",

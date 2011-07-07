@@ -12,6 +12,7 @@ enyo.kind({
   	rightPaneLastViewed: 'detailsView',
 
 	components: [
+		{kind: 'Mendeley.Plugin', onPluginReady: 'pluginReady'},
 		{kind: "DocMenu", name: 'docMenu', onTap: 'handleDocMenuTap', onClose: 'docMenuClosed'},
 		{
 			kind: "Scrim",
@@ -381,6 +382,10 @@ enyo.kind({
 			this.refreshView()
 		else
 			this.account()
+	},
+	
+	pluginReady: function(inSender) {
+		this.warn('Plugin Ready: ' + inSender)
 	}
 	
 })
