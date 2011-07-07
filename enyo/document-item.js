@@ -2,25 +2,18 @@ enyo.kind({
 	name: 'DocumentItem',
 	kind: 'Item',
 	layoutKind: 'HFlexLayout',
-	tapHighlight: false,
+	tapHighlight: true,
 	
 	published: {
 		rowIndex: -1,
 	},
 	
-	events: {
-		onDocClick: '',
-		onFavClick: '',
-		onReadClick: '',
-		onPdfClick: ''
-	},
-	
 	components: [
 		{kind: 'VFlexBox', components: [
 			{kind: "Spacer"},
-			{name: 'fav', onclick: 'favClick', className: 'docIcon'},
-			{name: 'read', onclick: 'readClick', className: 'docIcon middle'},
-			{name: 'pdf', onclick: 'pdfClick', className: 'docIcon'},
+			{name: 'fav', className: 'docIcon'},
+			{name: 'read', className: 'docIcon'},
+			{name: 'pdf', className: 'docIcon'},
 			{kind: "Spacer"}
 		]},
 		{kind: 'VFlexBox', flex: 1, className: 'docInfo', onclick: 'docClick', components: [
@@ -34,21 +27,5 @@ enyo.kind({
 			]}
 		]}
 	],
-	
-	favClick: function(inSender, inEvent) {
-		this.doFavClick(inSender, inEvent)	
-	},
-	
-	readClick: function(inSender, inEvent) {
-		this.doReadClick(inSender, inEvent)	
-	},
-	
-	pdfClick: function(inSender, inEvent) {
-		this.doPdfClick(inSender, inEvent)	
-	},
-	
-	docClick: function(inSender, inEvent) {
-		this.doDocClick(inSender, inEvent)	
-	}
 
 })

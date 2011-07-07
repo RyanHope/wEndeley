@@ -31,11 +31,6 @@
 .docIcon.readYes {background-position: -24px -24px;}
 .docIcon.pdf {background-position: -48px -24px;}
 
-.docIcon.middle {
-	margin-top: 4px;
-	margin-bottom: 4px;
-}
-
 .main-list .icon {
 	width: 32px;
 	height: 22px;

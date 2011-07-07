@@ -12,6 +12,7 @@ enyo.kind({
   	rightPaneLastViewed: 'detailsView',
 
 	components: [
+		{kind: "DocMenu", name: 'docMenu', onTap: 'handleDocMenuTap', onClose: 'docMenuClosed'},
 		{
 			kind: "Scrim",
 			layoutKind: "VFlexLayout",
@@ -80,7 +81,7 @@ enyo.kind({
 					onSetupRow: 'setupRow',
 					components: [
 						{name: "divider", captureState: false, kind: "Divider", showing: false, caption: "Sometime"},
-						{name: 'paper', kind: 'DocumentItem', onFavClick: 'favClick', onReadClick: 'readClick', onPdfClick: 'pdfClick', onDocClick: 'listItemClick'}
+						{name: 'paper', kind: 'DocumentItem', onclick: 'listItemClick', onmousehold: 'listItemHold'}
 	    			]
 				},
 				{
@@ -172,19 +173,32 @@ enyo.kind({
 			this.$.middle.setShowing(true)
 	},
 	
-	listItemClick: function(inSender, inEvent) {
-		var row = inSender.rowIndex
-		this.$.viewLibrary.setSelected(row)
-		this.$.viewLibrary.refresh()
+	showDetails: function(row) {
 		var paper = this.$.viewLibrary.fetch(row)
 		this.$.details.data = []
-		for (var key in paper) {
-			if (key[0] != '_')
-				this.$.details.data.push([key,paper[key]])
-		}
+		for (var key in paper)
+			this.$.details.data.push([key,paper[key]])
 		this.$.rightGroup.setValue(this.rightPaneLastViewed)
 		this.$.right.setShowing(true)
 		this.$.details.refresh()
+	},
+	
+	handleDocMenuTap: function(inSender, command) {
+		this.warn(command)
+	},
+	
+	docMenuClosed: function(inSender, inEvent) {
+		this.$.viewLibrary.refresh()
+	},
+
+	listItemHold: function(inSender, inEvent) {
+		this.$.docMenu.setRowIndex(inEvent.rowIndex)
+		this.$.docMenu.openAtEvent(inEvent)
+	},
+	
+	listItemClick: function(inSender, inEvent) {
+		if (!this.$.docMenu.showing)
+			this.showDetails(inSender.rowIndex)
 	},
 	
 	getDivider: function(inMessage, inIndex) {
@@ -311,12 +325,6 @@ enyo.kind({
 	
 	document: function(id, data) {
 		var entry = enyo.json.parse(data.text)
-		entry._id = id
-		entry._isFavorite = false
-		if (this.$.viewLibrary.selected != null && this.$.viewLibrary.selected.id == id)
-			entry._selected = true
-		else
-			entry._selected = false
 		this.myLibrary.push(entry)
 		if (this.myLibrary.length==this.libraryTotalResults) {
 			this.myLibrary.sort(enyo.bind(this, 'sortByYear'))
