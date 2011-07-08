@@ -32,6 +32,14 @@ enyo.kind({
 				}
   			]
 		},
+		{
+			kind: "RowGroup", caption: 'General', components: [
+				{kind: "HFlexBox", align: "center", components: [
+          			{content: "Sync Library On Launch", flex: 1},
+          			{kind: "CheckBox", name: 'syncOnLaunch'}
+      			]},
+  			]
+		},
   		{
   			layoutKind: "HFlexLayout",
   			pack: "center",
