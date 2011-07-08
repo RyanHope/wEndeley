@@ -24,10 +24,10 @@ enyo.kind({
   		this.doPluginReady()
   	},
   	pluginConnected: function(inSender, inResponse, inRequest) {
-  		this.log('~~~~~ wIRC Plugin Connected ~~~~~')
+  		this.log('~~~~~ Mendeley Plugin Connected ~~~~~')
   	},
   	pluginDisconnected: function(inSender, inResponse, inRequest) {
-  		this.log('~~~~~ wIRC Plugin Disconnected ~~~~~')
+  		this.log('~~~~~ Mendeley Plugin Disconnected ~~~~~')
   	},
   	
   	mkdirs: function(path) {
