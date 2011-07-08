@@ -16,10 +16,14 @@ enyo.kind({
 		{kind: "DocMenu", name: 'docMenu', onTap: 'handleDocMenuTap', onClose: 'docMenuClosed'},
 		{
 			kind: "Scrim",
+			showing: true,
+			name: 'init',
 			layoutKind: "VFlexLayout",
 			align: "center", pack: "center",
 			components: [
-				{kind: "SpinnerLarge", name: 'mainSpinner'}
+				{className: 'init-logo'},
+				{content: 'Initializing...', name: 'initText', className: 'init-text'},
+				{kind: 'Spinner', name: 'initSpinner', showing: true},
 			]
 		},
 		{
@@ -29,7 +33,7 @@ enyo.kind({
 		  		{caption: "Account", onclick: "account"},
 			]
 		},
-		{kind: "SlidingPane", name: 'views', flex: 1, components: [
+		{kind: "SlidingPane", name: 'views', flex: 1, showing: false, components: [
 			{name: "left", width: "27%", fixedWidth: true, components: [
 				{
 					kind: 'Toolbar',
@@ -274,22 +278,6 @@ enyo.kind({
 		this.$.detail.setContent(info[1])
 	},
 	
-	initComponents: function() {
-		this.inherited(arguments)
-		this.createComponent({
-			kind: "Mendeley.Client",
-			name: 'client',
-			onOAuthReady: 'handleOAuthReady',
-			onFailure: 'failure',
-			prefs: this.prefs
-		})
-		this.createComponent({
-			kind: 'Preferences',
-			name: 'preferences',
-			prefs: this.prefs
-		})
-	},
-
 	myGroupClick: function(inSender, e) {
 		this.rightPaneLastViewed = inSender.getValue()
   		this.$.rightMain.selectViewByName(this.rightPaneLastViewed)
@@ -333,8 +321,8 @@ enyo.kind({
 		if (this.myLibrary.length==this.libraryTotalResults) {
 			this.myLibrary.sort(enyo.bind(this, 'sortByYear'))
 			this.$.viewLibrary.data = this.myLibrary
-			this.$.mainSpinner.hide()
-			this.$.scrim.hide()
+			//this.$.mainSpinner.hide()
+			this.$.init.hide()
 			this.$.allDocuments.$.count.setContent(this.myLibrary.length)
 			this.$.allDocuments.$.count.setShowing(true)
 			this.$.viewLibrary.refresh()
@@ -352,8 +340,9 @@ enyo.kind({
 	},
 	
 	getLibrary: function(page) {
-		this.$.scrim.show()
-		this.$.mainSpinner.show()
+		this.$.initText.setContent('Fetching Document Details...')
+		this.$.init.show()
+		//this.$.initSpinner.show()
 		//this.$.mainButtons.setValue('viewLibrary')
 		this.$.client.getLibrary(enyo.bind(this,'library'), enyo.bind(this,'failure'), page)
 	},
@@ -365,8 +354,8 @@ enyo.kind({
 	
 	failure: function(inMessage) {
 		this.error(enyo.json.parse(inMessage.text).error)
-		this.$.mainSpinner.hide()
-		this.$.scrim.hide()
+		//this.$.mainSpinner.hide()
+		this.$.init.hide()
 	},
 	
 	preferences: function() {
@@ -378,14 +367,28 @@ enyo.kind({
 	},
 	
 	handleOAuthReady: function(inSender, hasAccount) {
-		if (hasAccount)
+		if (hasAccount) {
+			this.$.init.setShowing(false)
+			this.$.views.setShowing(true)
 			this.refreshView()
-		else
+		} else {
 			this.account()
+		}
 	},
 	
 	pluginReady: function(inSender) {
-		this.warn('Plugin Ready: ' + inSender)
-	}
-	
+		this.createComponent({
+			kind: 'Preferences',
+			name: 'preferences',
+			prefs: this.prefs
+		})
+		this.createComponent({
+			kind: "Mendeley.Client",
+			name: 'client',
+			onOAuthReady: 'handleOAuthReady',
+			onFailure: 'failure',
+			prefs: this.prefs
+		})
+	},
+
 })

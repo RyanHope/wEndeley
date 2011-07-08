@@ -2,6 +2,18 @@
 	background: #666;
 }
 
+.init-logo {
+	height: 256px;
+	width: 256px;
+	background: url(../images/icon-256.png) center center no-repeat;
+}
+.init-text {
+	color: white;
+	font-size: 120%;
+	text-shadow: #000 5px 5px 5px;
+	padding-bottom:  32px;
+}
+
 .first {
 	border-top: none;
 }
