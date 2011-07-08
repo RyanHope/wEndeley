@@ -5,8 +5,6 @@ PLUGIN		:=	mendeley
 PDLLIB		:=	libpdl
 
 CFLAGS		:=	$(MARCH_TUNE)
-
-INCLUDES	:=	-I${ROOT}/include -I${ROOT}${prefix}/include
 								
 LIBDIRS		:=	-L$(PDLLIB) -L$(ROOT)${prefix}/lib
 

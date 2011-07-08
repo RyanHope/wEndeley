@@ -32,6 +32,10 @@ enyo.kind({
   	
   	mkdirs: function(path) {
   		return this.$.plugin.callPluginMethod('mkdirs', path)
+  	},
+  	
+  	sha1file: function(path) {
+  		return this.$.plugin.callPluginMethod('sha1file', path)
   	}
   	
 })
