@@ -17,7 +17,7 @@ LIBS		:=	-lpdl
 all: $(PLUGIN)
 
 $(PLUGIN): $(OBJECTS) $(PDLLIB)/$(PDLLIB).so
-	$(CC) $(CFLAGS) $(LIBDIRS) $(LIBS) mendeley.c -o $(PLUGIN)
+	$(CC) $(CFLAGS) $(LIBDIRS) $(LIBS) sha1.c mendeley.c -o $(PLUGIN)
 
 .PHONY: $(PDLLIB)/$(PDLLIB).so
 $(PDLLIB)/$(PDLLIB).so:

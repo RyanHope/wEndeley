@@ -370,7 +370,8 @@ enyo.kind({
 		if (hasAccount) {
 			this.$.init.setShowing(false)
 			this.$.views.setShowing(true)
-			this.refreshView()
+			if (this.prefs.get('syncOnLaunch'))
+				this.refreshView()
 		} else {
 			this.account()
 		}

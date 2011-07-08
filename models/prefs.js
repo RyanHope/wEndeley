@@ -1,5 +1,16 @@
 function Prefs() {
 	
+	this.defaults = {
+		
+		libraryPath: '/media/internal/Mendeley',
+		syncOnLaunch: false
+		
+	}
+	
+	for (key in this.defaults)
+		if (this.get(key)==null)
+			this.set(key, this.defaults[key])
+	
 }
 
 Prefs.prototype.set = function(key, value) {

@@ -57,12 +57,13 @@ enyo.kind({
 	],
 	
 	rendered: function() {
-		var path = this.prefs.get('libraryPath')
-		this.$.libraryPath.setValue(path?path:'/media/internal/Mendeley')
+		this.$.libraryPath.setValue(this.prefs.get('libraryPath'))
+		this.$.syncOnLaunch.setChecked(this.prefs.get('syncOnLaunch'))
 	},
 	
 	closePrefs: function(inSender, inEvent) {
 		this.prefs.set('libraryPath', this.$.libraryPath.value)
+		this.prefs.set('syncOnLaunch', this.$.syncOnLaunch.checked)
 		this.close()
 	},
 
