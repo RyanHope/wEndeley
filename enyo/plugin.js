@@ -30,12 +30,16 @@ enyo.kind({
   		this.log('~~~~~ Mendeley Plugin Disconnected ~~~~~')
   	},
   	
-  	mkdirs: function(path) {
-  		return this.$.plugin.callPluginMethod('mkdirs', path)
+  	mkdirs: function(path, mode) {
+  		return this.$.plugin.callPluginMethod('mkdirs', path, mode)
   	},
   	
   	sha1file: function(path) {
   		return this.$.plugin.callPluginMethod('sha1file', path)
+  	},
+  	
+  	statfile: function(path) {
+  		return this.$.plugin.callPluginMethod('statfile', path)
   	}
   	
 })

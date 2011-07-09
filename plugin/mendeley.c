@@ -21,20 +21,25 @@
 #include <unistd.h>
 #include <string.h>
 #include <signal.h>
+#include <syslog.h>
+#include <errno.h>
+
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #include "sha1.h"
 #include "libpdl/PDL.h"
 
-int mkdirs(const char *path) {
+int mkdirs(const char *path, mode_t mode) {
 
 	int retval;
 	
-  	while (0 != (retval = mkdir(path))) {
+  	while (0 != (retval = mkdir(path, mode))) {
 		char subpath[FILENAME_MAX] = "", *delim;
 		if (NULL == (delim = strrchr(path, '\\')))
 			return retval;
 		strncat(subpath, path, delim - path);
-		mkdirs(subpath);
+		mkdirs(subpath, mode);
 	}
 	
 	return retval;
@@ -48,13 +53,40 @@ PDL_bool plugin_mkdirs(PDL_JSParameters *params) {
 	    PDL_JSException(params, "You must supply a path");
 	    return PDL_TRUE;
 	}
+	int mode;
+	if (PDL_GetNumJSParams(params) < 2 || !(mode = PDL_GetJSParamInt(params, 1))) {
+	    PDL_JSException(params, "You must supply a mode");
+	    return PDL_TRUE;
+	}
 	
-  	char reply[32];
-  	snprintf(reply, 32, "{'retVal':%d}", mkdirs(path));
+  	char *reply = 0;
+	if (mkdirs(path, mode)==0) {
+		asprintf(&reply, "{'retVal':0}");
+	} else {
+		asprintf(&reply, "{'retVal':-1,'errrno':%d,'errmsg':'%s'}", errno, strerror(errno));
+	}  	
   	PDL_JSReply(params, reply);
-	
-  	return PDL_TRUE;
-  	
+  	free(reply);	
+  	return PDL_TRUE;  	
+}
+
+PDL_bool plugin_statfile(PDL_JSParameters *params) {
+
+	struct stat st;
+	int s = stat(PDL_GetJSParamString(params, 0), &st);
+
+	char *reply = 0;
+	if (s==0) {
+		asprintf(
+				&reply,
+				"{'retVal':0,'st_mode':%u,'st_uid':%u,'st_gid':%u,'st_size':%u,'st_atim':%u,'st_mtim':%u,'st_ctim':%u,'st_blksize':%u}",
+				st.st_mode, st.st_uid, st.st_gid, st.st_size, st.st_atim, st.st_mtim, st.st_ctim, st.st_blksize);
+	} else {
+		asprintf(&reply, "{'retVal':-1,'errrno':%d,'errmsg':'%s'}", errno, strerror(errno));
+	}
+	PDL_JSReply(params, reply);
+	free(reply);
+	return PDL_TRUE;
 }
 
 PDL_bool plugin_sha1file(PDL_JSParameters *params) {
@@ -70,7 +102,7 @@ PDL_bool plugin_sha1file(PDL_JSParameters *params) {
 	    return PDL_TRUE;
 	}
 
-  	infile = fopen("/etc/conf.d/acpid", "r");
+  	infile = fopen(path, "r");
 
 	if(infile == NULL)
 		goto fail;
@@ -98,29 +130,34 @@ PDL_bool plugin_sha1file(PDL_JSParameters *params) {
 	blk_SHA1_Update(&ctx, buffer, numbytes);
 	blk_SHA1_Final(sha1, &ctx);
 
-  	char reply[1024];
+  	char *reply = 0;
 
-  	snprintf(reply, 1024, "{'retVal':0,'sha1':'%s'}",sha1_to_hex(sha1));
+  	asprintf(&reply, "{'retVal':0,'sha1':'%s'}",sha1_to_hex(sha1));
   	PDL_JSReply(params, reply);
 
   	free(buffer);
+  	free(reply);
 
   	return PDL_TRUE;
 
   	fail:
 
-  	snprintf(reply, 1024, "{'retVal':1}");
+  	asprintf(&reply, "{'retVal':1}");
 	PDL_JSReply(params, reply);
-
+	free(reply);
+	
   	return PDL_TRUE;
 
 }
 
 int main(int argc, char *argv[]) {
 
+	openlog("us.ryanhope.mendeley.plugin", LOG_PID, LOG_USER);
+
 	SDL_Init(SDL_INIT_VIDEO);
 	PDL_Init(0);
 	
+	PDL_RegisterJSHandler("statfile", plugin_statfile);
 	PDL_RegisterJSHandler("sha1file", plugin_sha1file);
 	PDL_RegisterJSHandler("mkdirs", plugin_mkdirs);
 	
@@ -134,6 +171,8 @@ int main(int argc, char *argv[]) {
 
 	PDL_Quit();
   	SDL_Quit();
+  	
+  	closelog();
 
 	return 0;
 

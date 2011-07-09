@@ -390,6 +390,6 @@ enyo.kind({
 			onFailure: 'failure',
 			prefs: this.prefs
 		})
-	},
+	}
 
 })
