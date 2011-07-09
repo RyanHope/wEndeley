@@ -40,6 +40,10 @@ enyo.kind({
   	
   	statfile: function(path) {
   		return this.$.plugin.callPluginMethod('statfile', path)
+  	},
+  	
+  	writefile: function(path, data) {
+  		return this.$.plugin.callPluginMethod('writefile', path, data)
   	}
   	
 })

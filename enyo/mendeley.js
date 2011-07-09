@@ -143,6 +143,10 @@ enyo.kind({
 	
 	getDocument: function(id, success, failure) {
 		this.oauth.get('http://api.mendeley.com/oapi/library/documents/'+id, success, failure)
+	},
+	
+	getFile: function(id, hash, success, failure) {
+		this.oauth.get('http://api.mendeley.com/oapi/library/documents/'+id+'/file/'+hash, success, failure)
 	}
 	
 })

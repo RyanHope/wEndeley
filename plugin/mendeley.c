@@ -89,6 +89,43 @@ PDL_bool plugin_statfile(PDL_JSParameters *params) {
 	return PDL_TRUE;
 }
 
+PDL_bool plugin_writefile(PDL_JSParameters *params) {
+
+	FILE    *outfile;
+
+	const char *path = NULL;
+  	if (PDL_GetNumJSParams(params) < 1 || !(path = PDL_GetJSParamString(params, 0))) {
+	    PDL_JSException(params, "You must supply a path");
+	    return PDL_TRUE;
+	}
+  	const char *data = NULL;
+	if (PDL_GetNumJSParams(params) < 2 || !(path = PDL_GetJSParamString(params, 1))) {
+		PDL_JSException(params, "You must supply data");
+		return PDL_TRUE;
+	}
+
+  	outfile = fopen(path, "w");
+
+	if(outfile == NULL)
+		goto fail;
+
+  	char *reply = 0;
+
+  	asprintf(&reply, "{'retVal':0,'chars':'%d'}", fprintf(outfile, "%s", data));
+  	PDL_JSReply(params, reply);
+  	fclose(outfile);
+  	free(reply);
+
+	fail:
+
+	asprintf(&reply, "{'retVal':1}");
+	PDL_JSReply(params, reply);
+	free(reply);
+
+	return PDL_TRUE;
+
+}
+
 PDL_bool plugin_sha1file(PDL_JSParameters *params) {
 
 	FILE    *infile;
@@ -157,6 +194,7 @@ int main(int argc, char *argv[]) {
 	SDL_Init(SDL_INIT_VIDEO);
 	PDL_Init(0);
 	
+	PDL_RegisterJSHandler("writefile", plugin_writefile);
 	PDL_RegisterJSHandler("statfile", plugin_statfile);
 	PDL_RegisterJSHandler("sha1file", plugin_sha1file);
 	PDL_RegisterJSHandler("mkdirs", plugin_mkdirs);

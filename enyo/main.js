@@ -315,8 +315,14 @@ enyo.kind({
 				return this.sortByAuthor(a, b)
 	},
 	
+	file: function(hash, data) {
+			this.warn(data.responseHeaders)
+		//this.warn(this.$.plugin.writefile(this.prefs.get('libraryPath')+'/'+hash+'.pdf', data.text))
+	},
+	
 	document: function(id, data) {
 		var entry = enyo.json.parse(data.text)
+		this.$.client.getFile(entry.id,entry.files,enyo.bind(this,'file',entry.file), enyo.bind(this,'failure'))
 		this.myLibrary.push(entry)
 		if (this.myLibrary.length==this.libraryTotalResults) {
 			this.myLibrary.sort(enyo.bind(this, 'sortByYear'))
