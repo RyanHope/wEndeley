@@ -322,7 +322,7 @@ enyo.kind({
 	
 	document: function(id, data) {
 		var entry = enyo.json.parse(data.text)
-		this.$.client.getFile(entry.id,entry.files,enyo.bind(this,'file',entry.file), enyo.bind(this,'failure'))
+		//this.$.client.getFile(entry.id,entry.files,enyo.bind(this,'file',entry.file), enyo.bind(this,'failure'))
 		this.myLibrary.push(entry)
 		if (this.myLibrary.length==this.libraryTotalResults) {
 			this.myLibrary.sort(enyo.bind(this, 'sortByYear'))
