@@ -495,11 +495,11 @@ enyo.kind({
 	
 	pushDocument: function(inSender, data) {
 		var data = enyo.json.parse(data)
-		var info = 'Fetching Document ' + data[0] + ' of ' + data[1]
+		this.myLibrary.push(data[2])
+		var info = 'Fetching Document ' + this.myLibrary.length + ' of ' + data[1]
 		this.warn(info)
 		this.$.initText.setContent(info)
-		this.myLibrary.push(data[2])
-		if (data[0]==data[1]) {
+		if (this.myLibrary.length==data[1]) {
 			this.myLibrary.sort(enyo.bind(this, 'sortByYear'))
 			this.$.viewLibrary.data = this.myLibrary
 			this.$.init.hide()

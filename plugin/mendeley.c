@@ -43,6 +43,12 @@ typedef struct {
   	const char *verifier;
 } oauth_t;
 
+typedef struct {
+	int r;
+	int tr;
+	char *id;
+} doc_t;
+
 oauth_t *oauth;
 
 PDL_bool plugin_init(PDL_JSParameters *params) {
@@ -133,37 +139,41 @@ PDL_bool plugin_authorize(PDL_JSParameters *params) {
 
 }
 
-PDL_bool plugin_get(PDL_JSParameters *params) {
+void *getDocument(void *ptr) {
 
-	char *url = PDL_GetJSParamString(params, 0);
+	doc_t *doc = ptr;
 	
-	char *req_url = oauth_sign_url2(url, NULL, OA_HMAC, NULL, oauth->req_c_key, oauth->req_c_secret, oauth->res_t_key, oauth->res_t_secret);
-  	char *response = oauth_http_get(req_url, NULL);
-    
-    syslog(LOG_ALERT, "%s", response);
-    
-    char *reply = 0;
-    asprintf(&reply, "{\"retVal\":0,\"response\":%s}", response);
-  	PDL_JSReply(params, reply);
-  	
-	if(req_url) free(req_url);
-  	if(response) free(response);
-  	if(reply) free(reply);
+	syslog(LOG_ALERT, "%d %d %s", doc->r, doc->tr, doc->id);
 
-	return PDL_TRUE;
+	char *url, *req_url, *response, *param;
+	char *params[1];
+
+	asprintf(&url, "http://api.mendeley.com/oapi/library/documents/%s", doc->id);
+	req_url = oauth_sign_url2(url, NULL, OA_HMAC, NULL, oauth->req_c_key,
+	oauth->req_c_secret, oauth->res_t_key, oauth->res_t_secret);
+	response = oauth_http_get(req_url, NULL);
+	asprintf(&param, "[%d,%d,%s]", doc->r+1, doc->tr, response);
+	params[0] = param;
+	PDL_CallJS("pushDocument", params, 1);
+	
+	if (doc->id) free(doc->id);
+	if (doc) free(doc);
+	if(param) free(param);
+	if(url) free(url);
+    if(req_url) free(req_url);
+  	if(response) free(response);
 
 }
 
 void *getLibrary() {
 
+	pthread_t thread;
+	doc_t *doc;
 	char *url = 0;
 	
 	char *req_url, *response;
 	json_t *root, *totalResults, *ipp, *ids, *id;
 	int cp = 0, tr = 0, r = 0, cont = 1, d, nd = 0;
-	
-	char *params[1];
-	char *param;
 	
 	while (cont) {
 		
@@ -189,32 +199,20 @@ void *getLibrary() {
 	    	ids = json_find_first_label(root, "document_ids");
 	    	id = ids->child->child;
 	    	
-	    	asprintf(&url, "http://api.mendeley.com/oapi/library/documents/%s", id->text);
-			req_url = oauth_sign_url2(url, NULL, OA_HMAC, NULL, oauth->req_c_key,
-			oauth->req_c_secret, oauth->res_t_key, oauth->res_t_secret);
-  			response = oauth_http_get(req_url, NULL);
-	    	asprintf(&param, "[%d,%d,%s]", r+1, tr, response);
-	    	params[0] = param;
-	    	PDL_CallJS("pushDocument", params, 1);
-	    	free(param);
-	    	if(url) free(url);
-		    if(req_url) free(req_url);
-		  	if(response) free(response);
+	    	doc = malloc(sizeof(doc_t));
+	    	doc->id = strdup(id->text);
+	    	doc->r = r;
+	    	doc->tr = tr;
+			pthread_create(&thread, NULL, &getDocument, doc);
 	    	r++;
 	    	
 	    	for (d=1;d<nd && r<tr;d++,r++) {
 				id = id->next;
-				asprintf(&url, "http://api.mendeley.com/oapi/library/documents/%s", id->text);
-				req_url = oauth_sign_url2(url, NULL, OA_HMAC, NULL, oauth->req_c_key,
-				oauth->req_c_secret, oauth->res_t_key, oauth->res_t_secret);
-	  			response = oauth_http_get(req_url, NULL);
-		    	asprintf(&param, "[%d,%d,%s]", r+1, tr, response);
-		    	params[0] = param;
-		    	PDL_CallJS("pushDocument", params, 1);
-		    	free(param);
-		    	if(url) free(url);
-			    if(req_url) free(req_url);
-			  	if(response) free(response);
+				doc = malloc(sizeof(doc_t));
+		    	doc->id = strdup(id->text);
+		    	doc->r = r;
+		    	doc->tr = tr;
+				pthread_create(&thread, NULL, &getDocument, doc);
 			}
 			
 		}
@@ -251,7 +249,6 @@ int main(int argc, char *argv[]) {
 	
 	PDL_RegisterJSHandler("init", plugin_init);
 	PDL_RegisterJSHandler("authorize", plugin_authorize);
-	PDL_RegisterJSHandler("get", plugin_get);
 	PDL_RegisterJSHandler("getLibrary", plugin_getLibrary);
 	
 	PDL_JSRegistrationComplete();
