@@ -12,7 +12,62 @@ enyo.kind({
   	rightPaneLastViewed: 'detailsView',
 
 	components: [
-		{kind: 'Mendeley.Plugin', onPluginReady: 'pluginReady'},
+		{
+			kind: 'Mendeley.Plugin',
+			onPluginReady: 'pluginReady',
+			onPushDocument: 'pushDocument'
+		},
+		{
+			kind: "Popup2",
+			name: 'newAccount',
+			scrim: true,
+			modal: true,
+			autoClose: false,
+			dismissWithClick: false,
+			components: [
+				{
+					layoutKind: "HFlexLayout",
+					pack: "center", 
+					components: [
+						{content: 'Account'}
+					]
+				},
+				{
+					kind: "RowGroup", components: [
+      					{
+      						kind: "Button",
+      						caption: "Log In and Get PIN",
+      						onclick: "login"
+  						},
+      					{
+      						kind: "Input",
+      						name: 'pin',
+      						hint: "Enter PIN",
+      						onchange: "inputChange"
+  						}
+          			]
+      			},
+          		{
+          			layoutKind: "HFlexLayout",
+          			pack: "center",
+          			components: [
+            			{
+            				kind: "Button",
+            				caption: "Save",
+            				flex: 1,
+            				onclick: "confirmClick",
+            				className: 'enyo-button-affirmative'
+        				},
+              			{
+              				kind: "Button",
+              				caption: "Cancel",
+              				flex: 1,
+              				onclick: "cancelClick"
+          				}
+          			]
+      			}
+      		]
+  		},
 		{kind: "DocMenu", name: 'docMenu', onTap: 'handleDocMenuTap', onClose: 'docMenuClosed'},
 		{
 			kind: "Scrim",
@@ -316,46 +371,55 @@ enyo.kind({
 	},
 	
 	file: function(hash, data) {
-			this.warn(data.responseHeaders)
-		//this.warn(this.$.plugin.writefile(this.prefs.get('libraryPath')+'/'+hash+'.pdf', data.text))
+		var filename = data.responseHeaders['Content-Disposition'].split('"')[1]
+		var path = this.prefs.get('libraryPath') + '/' + filename
+		this.$.plugin.writefile(path, data.text)
+		/*var i=0
+		var t=Math.floor(data.text.length/1024)
+		for (;i<t;i++) {
+			this.$.plugin.writefile(path, data.text.substr(i*1024,1024))
+			this.warn([i*1024,data.text.length])
+		}
+		this.warn(data.text.length-i*1024)
+		this.$.plugin.writefile(path, data.text.substr(i*1024))*/
 	},
 	
-	document: function(id, data) {
-		var entry = enyo.json.parse(data.text)
-		//this.$.client.getFile(entry.id,entry.files,enyo.bind(this,'file',entry.file), enyo.bind(this,'failure'))
-		this.myLibrary.push(entry)
+	details: function(response) {
+		var data = enyo.json.parse(response)
+		this.myLibrary.push(data.response)
+		this.warn([this.myLibrary.length,this.libraryTotalResults])
 		if (this.myLibrary.length==this.libraryTotalResults) {
-			this.myLibrary.sort(enyo.bind(this, 'sortByYear'))
-			this.$.viewLibrary.data = this.myLibrary
-			//this.$.mainSpinner.hide()
-			this.$.init.hide()
-			this.$.allDocuments.$.count.setContent(this.myLibrary.length)
-			this.$.allDocuments.$.count.setShowing(true)
-			this.$.viewLibrary.refresh()
+			
 		}
 	},
 	
-	library: function(data) {
-		var info = enyo.json.parse(data.text)
-		this.libraryTotalResults = info.total_results
-		var ids = info.document_ids
-		for (i in ids)
-			this.$.client.getDocument(ids[i], enyo.bind(this,'document',ids[i]), enyo.bind(this,'failure'))
-		if (info.current_page < info.total_pages-1)
-			this.$.client.getLibrary(enyo.bind(this,'library'), enyo.bind(this,'failure'), info.current_page+1)
+	getDocumentDetails: function(id) {
+		this.$.plugin.getDocument(enyo.bind(this, 'details'), id)
+	},
+	
+	library: function(response) {
+		var data = enyo.json.parse(response)
+		if (data.retVal == 0) {
+			if (this.myLibrary.length==0)
+				this.libraryTotalResults = data.response.total_results
+			if (data.response.current_page<data.response.total_pages-1)
+				this.$.plugin.getLibrary(enyo.bind(this, 'library'), data.response.current_page+1)
+			for (var i in data.response.document_ids)
+				enyo.asyncMethod(this, 'getDocumentDetails', data.response.document_ids[i])
+		}
 	},
 	
 	getLibrary: function(page) {
-		this.$.initText.setContent('Fetching Document Details...')
+		
 		this.$.init.show()
-		//this.$.initSpinner.show()
-		//this.$.mainButtons.setValue('viewLibrary')
-		this.$.client.getLibrary(enyo.bind(this,'library'), enyo.bind(this,'failure'), page)
+		this.$.plugin.getLibrary(enyo.bind(this, 'library'), page)
 	},
 	
 	refreshView: function(inSender, inEvent) {
-		this.myLibrary = []
-		this.getLibrary(0)
+		/*this.myLibrary = []
+		this.getLibrary(0)*/
+		this.$.initText.setContent('Fetching Document Details...')
+		this.$.plugin.getLibrary()
 	},
 	
 	failure: function(inMessage) {
@@ -371,16 +435,22 @@ enyo.kind({
 	account: function() {
     	this.$.client.account()
 	},
+
+	login: function(insender, e) {
+		var windowObjectReference = window.open(this.$.newAccount.url, 'authorise')
+	},
 	
-	handleOAuthReady: function(inSender, hasAccount) {
-		if (hasAccount) {
-			this.$.init.setShowing(false)
-			this.$.views.setShowing(true)
-			if (this.prefs.get('syncOnLaunch'))
-				this.refreshView()
-		} else {
-			this.account()
+	confirmClick: function(insender, e) {
+		this.$.newAccount.close()
+		var response = this.$.plugin.authorize(this.$.pin.getValue())
+		if (response.retVal == 0) {
+			if (response.accessTokens)
+				this.prefs.set('tokens', response.accessTokens)
 		}
+	},
+	
+	cancelClick: function(insender, e) {
+		this.$.newAccount.close()
 	},
 	
 	pluginReady: function(inSender) {
@@ -389,13 +459,54 @@ enyo.kind({
 			name: 'preferences',
 			prefs: this.prefs
 		})
-		this.createComponent({
+		var tokens = this.prefs.get('tokens')
+		var response = this.$.plugin.init(
+			'http://www.mendeley.com/oauth/request_token',
+			'http://www.mendeley.com/oauth/authorize',
+			'http://www.mendeley.com/oauth/access_token',
+			'991f431a0922ecc7c79d531b504c42df04e0e11a8',
+			'805116556db48be9d91d2ac49b879aaa',
+			tokens[0],
+			tokens[1]
+		)
+		
+		this.warn(response)
+		if (response.retVal == 0) {
+			if (response.authorize) {
+				this.warn(response.authorize)
+				this.$.newAccount.setUrl(response.authorize)
+				this.$.newAccount.openAtTopCenter()
+			} else {
+				//this.$.init.setShowing(false)
+				this.$.views.setShowing(true)
+				if (this.prefs.get('syncOnLaunch'))
+					this.refreshView()
+			}
+		}
+		//this.warn(this.$.plugin.)
+		/*this.createComponent({
 			kind: "Mendeley.Client",
 			name: 'client',
 			onOAuthReady: 'handleOAuthReady',
 			onFailure: 'failure',
 			prefs: this.prefs
-		})
+		})*/
+	},
+	
+	pushDocument: function(inSender, data) {
+		var data = enyo.json.parse(data)
+		var info = 'Fetching Document ' + data[0] + ' of ' + data[1]
+		this.warn(info)
+		this.$.initText.setContent(info)
+		this.myLibrary.push(data[2])
+		if (data[0]==data[1]) {
+			this.myLibrary.sort(enyo.bind(this, 'sortByYear'))
+			this.$.viewLibrary.data = this.myLibrary
+			this.$.init.hide()
+			this.$.allDocuments.$.count.setContent(this.myLibrary.length)
+			this.$.allDocuments.$.count.setShowing(true)
+			this.$.viewLibrary.refresh()
+		}
 	}
 
 })

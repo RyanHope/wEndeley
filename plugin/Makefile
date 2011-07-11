@@ -3,19 +3,20 @@ include Makefile.inc
 PLUGIN		:=	mendeley
 
 PDLLIB		:=	libpdl
+OAUTHLIB	:=	liboauth
 
-CFLAGS		:=	$(MARCH_TUNE)
+CFLAGS		:=	$(MARCH_TUNE) -I. -I$(ROOT)${PREFIX}/include
 								
-LIBDIRS		:=	-L$(PDLLIB) -L$(ROOT)${prefix}/lib
+LIBDIRS		:=	-L$(PDLLIB) -L$(ROOT)${PREFIX}/lib
 
-LIBS		:=	-lpdl
+LIBS		:=	-lpdl -lm -lcrypto -lssl -lcurl -lmjson
 
 .PHONY		:	clean clobber
 
 all: $(PLUGIN)
 
 $(PLUGIN): $(OBJECTS) $(PDLLIB)/$(PDLLIB).so
-	$(CC) $(CFLAGS) $(LIBDIRS) $(LIBS) sha1.c mendeley.c -o $(PLUGIN)
+	$(CC) $(CFLAGS) $(LIBDIRS) $(LIBS) xmalloc.c hash.c oauth_http.c oauth.c mendeley.c -o $(PLUGIN)
 
 .PHONY: $(PDLLIB)/$(PDLLIB).so
 $(PDLLIB)/$(PDLLIB).so:

@@ -23,57 +23,7 @@ enyo.kind({
    			onSuccess: "importConsumerSecret",
    			onFailure: "failure"
 		},
-		{
-			kind: "Popup2",
-			name: 'newAccount',
-			scrim: true,
-			modal: true,
-			autoClose: false,
-			dismissWithClick: false,
-			components: [
-				{
-					layoutKind: "HFlexLayout",
-					pack: "center", 
-					components: [
-						{content: 'Account'}
-					]
-				},
-				{
-					kind: "RowGroup", components: [
-      					{
-      						kind: "Button",
-      						caption: "Log In and Get PIN",
-      						onclick: "login"
-  						},
-      					{
-      						kind: "Input",
-      						name: 'pin',
-      						hint: "Enter PIN",
-      						onchange: "inputChange"
-  						}
-          			]
-      			},
-          		{
-          			layoutKind: "HFlexLayout",
-          			pack: "center",
-          			components: [
-            			{
-            				kind: "Button",
-            				caption: "Save",
-            				flex: 1,
-            				onclick: "confirmClick",
-            				className: 'enyo-button-affirmative'
-        				},
-              			{
-              				kind: "Button",
-              				caption: "Cancel",
-              				flex: 1,
-              				onclick: "cancelClick"
-          				}
-          			]
-      			}
-      		]
-  		}
+		
 	],
 	
 	initComponents: function() {
@@ -117,6 +67,7 @@ enyo.kind({
 	},
 
 	request: function(url) {
+		this.error(url)
 		var windowObjectReference = window.open(url, 'authorise')
 	},
 	
@@ -124,14 +75,7 @@ enyo.kind({
     	this.oauth.fetchRequestToken(enyo.bind(this,'request'),enyo.bind(this,'failure'))
 	},
 	
-	confirmClick: function(insender, e) {
-		this.oauth.setVerifier(this.$.pin.getValue())
-		this.oauth.fetchAccessToken(enyo.bind(this,'access'),enyo.bind(this,'failure'))
-	},
-	
-	cancelClick: function(insender, e) {
-		this.$.newAccount.close()
-	},
+
 
 	account: function() {
     	this.$.newAccount.openAtTopCenter()
@@ -141,9 +85,7 @@ enyo.kind({
 		this.oauth.get('http://api.mendeley.com/oapi/library?page='+page, success, failure)
 	},
 	
-	getDocument: function(id, success, failure) {
-		this.oauth.get('http://api.mendeley.com/oapi/library/documents/'+id, success, failure)
-	},
+	
 	
 	getFile: function(id, hash, success, failure) {
 		this.oauth.get('http://api.mendeley.com/oapi/library/documents/'+id+'/file/'+hash, success, failure)

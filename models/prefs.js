@@ -3,7 +3,8 @@ function Prefs() {
 	this.defaults = {
 		
 		libraryPath: '/media/internal/Mendeley',
-		syncOnLaunch: false
+		syncOnLaunch: false,
+		tokens: ['',''],
 		
 	}
 	

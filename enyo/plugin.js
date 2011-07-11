@@ -4,7 +4,8 @@ enyo.kind({
 	kind: enyo.Control,
 		
 	events: {
-		onPluginReady:''
+		onPluginReady:'',
+		onPushDocument:''
 	},
 
 	initComponents: function() {
@@ -20,7 +21,8 @@ enyo.kind({
 	},
 		
   	pluginReady: function(inSender, inResponse, inRequest) {
-  		this.log('~~~~~ Mendeley Plugin Ready ~~~~~')  		
+  		this.log('~~~~~ Mendeley Plugin Ready ~~~~~')
+  		this.$.plugin.addCallback('pushDocument', enyo.bind(this, 'doPushDocument'))  		
   		this.doPluginReady()
   	},
   	pluginConnected: function(inSender, inResponse, inRequest) {
@@ -30,20 +32,20 @@ enyo.kind({
   		this.log('~~~~~ Mendeley Plugin Disconnected ~~~~~')
   	},
   	
-  	mkdirs: function(path, mode) {
-  		return this.$.plugin.callPluginMethod('mkdirs', path, mode)
-  	},
+  	init: function(request_token_uri, authorize_token_uri, access_token_uri, req_c_key, req_c_secret, res_t_key, res_t_secret) {
+		return enyo.json.parse(this.$.plugin.callPluginMethod('init', request_token_uri, authorize_token_uri, access_token_uri, req_c_key, req_c_secret, res_t_key, res_t_secret))
+	},
+	
+	authorize: function(verifier) {
+		return enyo.json.parse(this.$.plugin.callPluginMethod('authorize', verifier))
+	},
+	
+	getLibrary: function() {
+		this.$.plugin.callPluginMethod('getLibrary')
+	},
   	
-  	sha1file: function(path) {
-  		return this.$.plugin.callPluginMethod('sha1file', path)
-  	},
-  	
-  	statfile: function(path) {
-  		return this.$.plugin.callPluginMethod('statfile', path)
-  	},
-  	
-  	writefile: function(path, data) {
-  		return this.$.plugin.callPluginMethod('writefile', path, data)
-  	}
+  	getDocument: function(callback, id) {
+  		this.$.plugin.callPluginMethodDeferred(callback, 'get', 'http://api.mendeley.com/oapi/library/documents/'+id)
+	}
   	
 })
