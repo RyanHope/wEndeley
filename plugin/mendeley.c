@@ -25,11 +25,12 @@
 #include <errno.h>
 #include <oauth.h>
 #include <json.h>
-#include <pthread.h>
+#include <limits.h>
 
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#include "threadpool.h"
 #include "libpdl/PDL.h"
 
 typedef struct {
@@ -50,6 +51,66 @@ typedef struct {
 } doc_t;
 
 oauth_t *oauth;
+threadpool tp;
+
+int mkdirs(const char *path, mode_t mode) {
+
+	int retval;
+
+  	while (0 != (retval = mkdir(path, mode))) {
+		char subpath[FILENAME_MAX] = "", *delim;
+		if (NULL == (delim = strrchr(path, '\\')))
+			return retval;
+		strncat(subpath, path, delim - path);
+		mkdirs(subpath, mode);
+	}
+
+	return retval;
+
+}
+
+PDL_bool plugin_mkdirs(PDL_JSParameters *params) {
+
+	const char *path = NULL;
+  	if (PDL_GetNumJSParams(params) < 1 || !(path = PDL_GetJSParamString(params, 0))) {
+	    PDL_JSException(params, "You must supply a path");
+	    return PDL_TRUE;
+	}
+	int mode;
+	if (PDL_GetNumJSParams(params) < 2 || !(mode = PDL_GetJSParamInt(params, 1))) {
+	    PDL_JSException(params, "You must supply a mode");
+	    return PDL_TRUE;
+	}
+
+  	char *reply = 0;
+	if (mkdirs(path, mode)==0) {
+		asprintf(&reply, "{'retVal':0}");
+	} else {
+		asprintf(&reply, "{'retVal':-1,'errrno':%d,'errmsg':'%s'}", errno, strerror(errno));
+	}
+  	PDL_JSReply(params, reply);
+  	free(reply);
+  	return PDL_TRUE;
+}
+
+PDL_bool plugin_statfile(PDL_JSParameters *params) {
+
+	struct stat st;
+	int s = stat(PDL_GetJSParamString(params, 0), &st);
+
+	char *reply = 0;
+	if (s==0) {
+		asprintf(
+				&reply,
+				"{'retVal':0,'st_mode':%u,'st_uid':%u,'st_gid':%u,'st_size':%u,'st_atim':%u,'st_mtim':%u,'st_ctim':%u,'st_blksize':%u}",
+				st.st_mode, st.st_uid, st.st_gid, st.st_size, st.st_atim, st.st_mtim, st.st_ctim, st.st_blksize);
+	} else {
+		asprintf(&reply, "{'retVal':-1,'errrno':%d,'errmsg':'%s'}", errno, strerror(errno));
+	}
+	PDL_JSReply(params, reply);
+	free(reply);
+	return PDL_TRUE;
+}
 
 PDL_bool plugin_init(PDL_JSParameters *params) {
 
@@ -139,42 +200,46 @@ PDL_bool plugin_authorize(PDL_JSParameters *params) {
 
 }
 
-void *getDocument(void *ptr) {
+void getDocument(void *ptr) {
 
 	doc_t *doc = ptr;
-	
-	syslog(LOG_ALERT, "%d %d %s", doc->r, doc->tr, doc->id);
 
 	char *url, *req_url, *response, *param;
 	char *params[1];
+	json_t *root, *files;
 
 	asprintf(&url, "http://api.mendeley.com/oapi/library/documents/%s", doc->id);
 	req_url = oauth_sign_url2(url, NULL, OA_HMAC, NULL, oauth->req_c_key,
 	oauth->req_c_secret, oauth->res_t_key, oauth->res_t_secret);
 	response = oauth_http_get(req_url, NULL);
+	//root = json_parse_document(response);
+	//files = json_find_first_label(root, "files");
+	//syslog(LOG_ALERT, "Files: %s", response);//files->child->text); 
+	//json_free_value(&root);
+	
 	asprintf(&param, "[%d,%d,%s]", doc->r+1, doc->tr, response);
 	params[0] = param;
 	PDL_CallJS("pushDocument", params, 1);
-	
-	if (doc->id) free(doc->id);
-	if (doc) free(doc);
 	if(param) free(param);
+
 	if(url) free(url);
     if(req_url) free(req_url);
   	if(response) free(response);
-
+  	
+	if (doc->id) free(doc->id);
+	if (doc) free(doc);
 }
 
-void *getLibrary() {
+void getLibrary() {
 
-	pthread_t thread;
 	doc_t *doc;
 	char *url = 0;
+	pthread_t thread[20];
 	
 	char *req_url, *response;
 	json_t *root, *totalResults, *ipp, *ids, *id;
 	int cp = 0, tr = 0, r = 0, cont = 1, d, nd = 0;
-	
+		
 	while (cont) {
 		
 		d = 0;
@@ -203,7 +268,9 @@ void *getLibrary() {
 	    	doc->id = strdup(id->text);
 	    	doc->r = r;
 	    	doc->tr = tr;
-			pthread_create(&thread, NULL, &getDocument, doc);
+	    	sched_yield();
+	    	dispatch(tp, getDocument, (void *) doc);
+	    	sched_yield();
 	    	r++;
 	    	
 	    	for (d=1;d<nd && r<tr;d++,r++) {
@@ -212,7 +279,9 @@ void *getLibrary() {
 		    	doc->id = strdup(id->text);
 		    	doc->r = r;
 		    	doc->tr = tr;
-				pthread_create(&thread, NULL, &getDocument, doc);
+		    	sched_yield();
+		    	dispatch(tp, getDocument, (void *) doc);
+		    	sched_yield();
 			}
 			
 		}
@@ -229,8 +298,7 @@ void *getLibrary() {
 
 PDL_bool plugin_getLibrary(PDL_JSParameters *params) {
 	
-	pthread_t thread;
-	pthread_create(&thread, NULL, &getLibrary, NULL);
+	dispatch(tp, getLibrary, NULL);    
     
   	PDL_JSReply(params, "{\"retVal\":0}");
 
@@ -241,6 +309,8 @@ PDL_bool plugin_getLibrary(PDL_JSParameters *params) {
 int main(int argc, char *argv[]) {
 
 	openlog("us.ryanhope.mendeley.plugin", LOG_PID, LOG_USER);
+	
+	tp = create_threadpool(30);
 
 	SDL_Init(SDL_INIT_VIDEO);
 	PDL_Init(0);
@@ -250,6 +320,8 @@ int main(int argc, char *argv[]) {
 	PDL_RegisterJSHandler("init", plugin_init);
 	PDL_RegisterJSHandler("authorize", plugin_authorize);
 	PDL_RegisterJSHandler("getLibrary", plugin_getLibrary);
+	PDL_RegisterJSHandler("statfile", plugin_statfile);
+	PDL_RegisterJSHandler("mkdirs", plugin_mkdirs);
 	
 	PDL_JSRegistrationComplete();
 	PDL_CallJS("ready", NULL, 0);

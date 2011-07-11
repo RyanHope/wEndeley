@@ -41,11 +41,11 @@ enyo.kind({
 	},
 	
 	getLibrary: function() {
-		this.$.plugin.callPluginMethod('getLibrary')
+		return this.$.plugin.callPluginMethod('getLibrary')
 	},
-  	
-  	getDocument: function(callback, id) {
-  		this.$.plugin.callPluginMethodDeferred(callback, 'get', 'http://api.mendeley.com/oapi/library/documents/'+id)
-	}
+
+	mkdirs: function(path, mode) {
+   		return this.$.plugin.callPluginMethod('mkdirs', path, mode)
+  	},
   	
 })

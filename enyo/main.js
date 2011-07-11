@@ -383,42 +383,16 @@ enyo.kind({
 		this.warn(data.text.length-i*1024)
 		this.$.plugin.writefile(path, data.text.substr(i*1024))*/
 	},
-	
-	details: function(response) {
-		var data = enyo.json.parse(response)
-		this.myLibrary.push(data.response)
-		this.warn([this.myLibrary.length,this.libraryTotalResults])
-		if (this.myLibrary.length==this.libraryTotalResults) {
-			
-		}
-	},
-	
+
 	getDocumentDetails: function(id) {
 		this.$.plugin.getDocument(enyo.bind(this, 'details'), id)
 	},
-	
-	library: function(response) {
-		var data = enyo.json.parse(response)
-		if (data.retVal == 0) {
-			if (this.myLibrary.length==0)
-				this.libraryTotalResults = data.response.total_results
-			if (data.response.current_page<data.response.total_pages-1)
-				this.$.plugin.getLibrary(enyo.bind(this, 'library'), data.response.current_page+1)
-			for (var i in data.response.document_ids)
-				enyo.asyncMethod(this, 'getDocumentDetails', data.response.document_ids[i])
-		}
-	},
-	
-	getLibrary: function(page) {
-		
-		this.$.init.show()
-		this.$.plugin.getLibrary(enyo.bind(this, 'library'), page)
-	},
-	
+
 	refreshView: function(inSender, inEvent) {
-		/*this.myLibrary = []
-		this.getLibrary(0)*/
 		this.$.initText.setContent('Fetching Document Details...')
+		this.$.views.setShowing(false)
+		this.$.init.show()
+		this.myLibrary = []
 		this.$.plugin.getLibrary()
 	},
 	
@@ -470,8 +444,10 @@ enyo.kind({
 			tokens[1]
 		)
 		
-		this.warn(response)
 		if (response.retVal == 0) {
+			
+			this.warn(this.$.plugin.mkdirs(this.prefs.get('libraryPath'),777))
+			
 			if (response.authorize) {
 				this.warn(response.authorize)
 				this.$.newAccount.setUrl(response.authorize)
@@ -497,12 +473,12 @@ enyo.kind({
 		var data = enyo.json.parse(data)
 		this.myLibrary.push(data[2])
 		var info = 'Fetching Document ' + this.myLibrary.length + ' of ' + data[1]
-		this.warn(info)
 		this.$.initText.setContent(info)
 		if (this.myLibrary.length==data[1]) {
 			this.myLibrary.sort(enyo.bind(this, 'sortByYear'))
 			this.$.viewLibrary.data = this.myLibrary
 			this.$.init.hide()
+			this.$.views.setShowing(true)
 			this.$.allDocuments.$.count.setContent(this.myLibrary.length)
 			this.$.allDocuments.$.count.setShowing(true)
 			this.$.viewLibrary.refresh()
