@@ -202,13 +202,14 @@ PDL_bool plugin_authorize(PDL_JSParameters *params) {
 
 void getDocument(void *ptr) {
 
-	doc_t *doc = ptr;
+	char *id = ptr;
+	syslog(LOG_ALERT, "%s", id);
 
-	char *url, *req_url, *response, *param;
+	char *url, *req_url, *response;
 	char *params[1];
 	json_t *root, *files;
 
-	asprintf(&url, "http://api.mendeley.com/oapi/library/documents/%s", doc->id);
+	asprintf(&url, "http://api.mendeley.com/oapi/library/documents/%s", id);
 	req_url = oauth_sign_url2(url, NULL, OA_HMAC, NULL, oauth->req_c_key,
 	oauth->req_c_secret, oauth->res_t_key, oauth->res_t_secret);
 	response = oauth_http_get(req_url, NULL);
@@ -217,82 +218,67 @@ void getDocument(void *ptr) {
 	//syslog(LOG_ALERT, "Files: %s", response);//files->child->text); 
 	//json_free_value(&root);
 	
-	asprintf(&param, "[%d,%d,%s]", doc->r+1, doc->tr, response);
-	params[0] = param;
+	params[0] = response;
 	PDL_CallJS("pushDocument", params, 1);
-	if(param) free(param);
 
-	if(url) free(url);
-    if(req_url) free(req_url);
-  	if(response) free(response);
+	free(id);
+	free(url);
+    free(req_url);
+  	free(response);
   	
-	if (doc->id) free(doc->id);
-	if (doc) free(doc);
+}
+
+json_t * getLibraryPage(int page) {
+	
+	json_t *root;
+	char *req_url, *response, *url;
+	
+	asprintf(&url, "http://api.mendeley.com/oapi/library?page=%d", page);
+	req_url = oauth_sign_url2(url, NULL, OA_HMAC, NULL, oauth->req_c_key,
+		oauth->req_c_secret, oauth->res_t_key, oauth->res_t_secret);
+	response = oauth_http_get(req_url, NULL);
+	root = json_parse_document(response);
+	
+	free(url);
+    free(req_url);
+  	free(response);
+  	
+  	return root;
+  	
 }
 
 void getLibrary() {
 
-	doc_t *doc;
-	char *url = 0;
-	pthread_t thread[20];
+	json_t *root = 0, *ids, *id;
+	int total_results = 0, total_pages = 0, current_page = 0;
+	char *tr;
 	
-	char *req_url, *response;
-	json_t *root, *totalResults, *ipp, *ids, *id;
-	int cp = 0, tr = 0, r = 0, cont = 1, d, nd = 0;
-		
-	while (cont) {
-		
-		d = 0;
+	int count = 0;
+	char **document_ids = 0;
 	
-		asprintf(&url, "http://api.mendeley.com/oapi/library?page=%d", cp);
-		req_url = oauth_sign_url2(url, NULL, OA_HMAC, NULL, oauth->req_c_key,
-			oauth->req_c_secret, oauth->res_t_key, oauth->res_t_secret);
-  		response = oauth_http_get(req_url, NULL);
-		root = json_parse_document(response);
-		
-		if(url) free(url);
-	    if(req_url) free(req_url);
-	  	if(response) free(response);
-               
-    	totalResults = json_find_first_label(root, "total_results"); 
-    	ipp = json_find_first_label(root, "items_per_page"); 	
-    	tr = atoi(totalResults->child->text);
-    	nd = atoi(ipp->child->text);
-    	
-    	if (tr>0) {
-    	
-	    	ids = json_find_first_label(root, "document_ids");
-	    	id = ids->child->child;
-	    	
-	    	doc = malloc(sizeof(doc_t));
-	    	doc->id = strdup(id->text);
-	    	doc->r = r;
-	    	doc->tr = tr;
-	    	sched_yield();
-	    	dispatch(tp, getDocument, (void *) doc);
-	    	sched_yield();
-	    	r++;
-	    	
-	    	for (d=1;d<nd && r<tr;d++,r++) {
-				id = id->next;
-				doc = malloc(sizeof(doc_t));
-		    	doc->id = strdup(id->text);
-		    	doc->r = r;
-		    	doc->tr = tr;
-		    	sched_yield();
-		    	dispatch(tp, getDocument, (void *) doc);
-		    	sched_yield();
-			}
-			
-		}
-			
+	do {
+		if (root)
+			json_free_value(&root);
+		root = getLibraryPage(current_page);
+		total_pages = atoi(json_find_first_label(root, "total_pages")->child->text);
+		tr = json_find_first_label(root, "total_results")->child->text;
+		total_results = atoi(tr);
+		if (!document_ids)
+			document_ids = malloc(total_results*sizeof(char*)); 
+		ids = json_find_first_label(root, "document_ids");
+		for (id=ids->child->child;id;id = id->next)
+			document_ids[count++] = strdup(id->text);
+	} while(current_page++ < total_pages-1);
+	
+	char *params[1];
+	params[0] = tr;
+	PDL_CallJS("setLibrarySize", params, 1);
+	if (root)
 		json_free_value(&root);
 		
-		cp++;
-		if (r==tr)
-			cont = 0;
-		
-	}
+	count--;
+	while (count>=0)
+		dispatch(tp, getDocument, (void *) document_ids[count--]);		
 
 }
 

@@ -41,7 +41,8 @@
 .docIcon.favYes {background-position: 0px -24px;}
 .docIcon.readNo {background-position: -24px 0px;}
 .docIcon.readYes {background-position: -24px -24px;}
-.docIcon.pdf {background-position: -48px -24px;}
+.docIcon.pdfNo {background-position: -48px -0px;}
+.docIcon.pdfYes {background-position: -48px -24px;}
 
 .main-list .icon {
 	width: 32px;

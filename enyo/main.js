@@ -15,7 +15,8 @@ enyo.kind({
 		{
 			kind: 'Mendeley.Plugin',
 			onPluginReady: 'pluginReady',
-			onPushDocument: 'pushDocument'
+			onPushDocument: 'pushDocument',
+			onSetLibrarySize: 'setLibrarySize'
 		},
 		{
 			kind: "Popup2",
@@ -317,8 +318,10 @@ enyo.kind({
 			this.$.paper.$.fav.addClass('favNo')
 		}
 
-		if (info.files.length>0)
-			this.$.paper.$.pdf.addClass('pdf')
+		if (info.files && info.files.length>0)
+			this.$.paper.$.pdf.addClass('pdfYes')
+		else
+			this.$.paper.$.pdf.addClass('pdfNo')
 
 		if (info._selected)
 			this.$.paper.addClass('enyo-held')
@@ -469,12 +472,17 @@ enyo.kind({
 		})*/
 	},
 	
+	setLibrarySize: function(inSender, data) {
+		this.libraryTotalResults = data
+		this.warn(data)
+	},
+	
 	pushDocument: function(inSender, data) {
 		var data = enyo.json.parse(data)
-		this.myLibrary.push(data[2])
-		var info = 'Fetching Document ' + this.myLibrary.length + ' of ' + data[1]
+		this.myLibrary.push(data)
+		var info = 'Fetching Document ' + this.myLibrary.length + ' of ' + this.libraryTotalResults
 		this.$.initText.setContent(info)
-		if (this.myLibrary.length==data[1]) {
+		if (this.myLibrary.length==this.libraryTotalResults) {
 			this.myLibrary.sort(enyo.bind(this, 'sortByYear'))
 			this.$.viewLibrary.data = this.myLibrary
 			this.$.init.hide()
