@@ -30,6 +30,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#include "oauth.h"
 #include "threadpool.h"
 #include "libpdl/PDL.h"
 
@@ -45,10 +46,10 @@ typedef struct {
 } oauth_t;
 
 typedef struct {
-	int r;
-	int tr;
 	char *id;
-} doc_t;
+	char *hash;
+	char *path;
+} file_t;
 
 oauth_t *oauth;
 threadpool tp;
@@ -130,7 +131,7 @@ PDL_bool plugin_init(PDL_JSParameters *params) {
   		oauth->res_t_secret = 0;
   		
 		char *req_url = oauth_sign_url2(oauth->request_token_uri, NULL, OA_HMAC, NULL, oauth->req_c_key, oauth->req_c_secret, oauth->res_t_key, oauth->res_t_secret);
-	  	char *response = oauth_http_get(req_url, NULL);
+	  	char *response = oauth_http_get(req_url, NULL, NULL);
 			
 		char *reply = 0;		
 		asprintf(&reply, "{\"retVal\":0,\"authorize\":\"%s?%s\"}", oauth->authorize_token_uri, response);
@@ -173,7 +174,7 @@ PDL_bool plugin_authorize(PDL_JSParameters *params) {
 	syslog(LOG_ALERT, "%s", url);
 	
 	char *req_url = oauth_sign_url2(url, NULL, OA_HMAC, NULL, oauth->req_c_key, oauth->req_c_secret, oauth->res_t_key, oauth->res_t_secret);
-  	char *response = oauth_http_get(req_url, NULL);
+  	char *response = oauth_http_get(req_url, NULL, NULL);
 	
 	free(oauth->res_t_key);
 	free(oauth->res_t_secret);
@@ -212,7 +213,7 @@ void getDocument(void *ptr) {
 	asprintf(&url, "http://api.mendeley.com/oapi/library/documents/%s", id);
 	req_url = oauth_sign_url2(url, NULL, OA_HMAC, NULL, oauth->req_c_key,
 	oauth->req_c_secret, oauth->res_t_key, oauth->res_t_secret);
-	response = oauth_http_get(req_url, NULL);
+	response = oauth_http_get(req_url, NULL, NULL);
 	//root = json_parse_document(response);
 	//files = json_find_first_label(root, "files");
 	//syslog(LOG_ALERT, "Files: %s", response);//files->child->text); 
@@ -232,11 +233,11 @@ json_t * getLibraryPage(int page) {
 	
 	json_t *root;
 	char *req_url, *response, *url;
-	
+
 	asprintf(&url, "http://api.mendeley.com/oapi/library?page=%d", page);
 	req_url = oauth_sign_url2(url, NULL, OA_HMAC, NULL, oauth->req_c_key,
 		oauth->req_c_secret, oauth->res_t_key, oauth->res_t_secret);
-	response = oauth_http_get(req_url, NULL);
+	response = oauth_http_get(req_url, NULL, NULL);
 	root = json_parse_document(response);
 	
 	free(url);
@@ -244,6 +245,58 @@ json_t * getLibraryPage(int page) {
   	free(response);
   	
   	return root;
+  	
+}
+
+void fetchFile(file_t *file) {
+	
+	FILE *outfile;
+	char *req_url, *path, *url;
+	struct MemoryStruct header;
+	struct MemoryStruct response;
+	
+  	asprintf(&url, "http://api.mendeley.com/oapi/library/documents/%s/file/%s", file->id, file->hash);
+	
+	header.size = 0;
+	header.data = NULL;
+	response.size = 0;
+	response.data = NULL;
+	
+	
+	req_url = oauth_sign_url2(url, NULL, OA_HMAC, NULL, oauth->req_c_key,
+		oauth->req_c_secret, oauth->res_t_key, oauth->res_t_secret);
+	if (oauth_http_get3(req_url, NULL, &response, &header)>0)
+		goto fail;
+	
+	char delims[] = "\r";
+	char *result = NULL;
+	char *tmp;
+	result = strtok(header.data, delims);
+	while( result != NULL ) {
+		tmp = strndup(result+1,19);
+		if (strcmp(tmp,"Content-Disposition")==0) {
+			result[strlen(result)-1] = 0;
+			syslog(LOG_ALERT, "%s", result+44);
+			asprintf(&path, "%s/%s.pdf", file->path, file->hash);
+	    	outfile = fopen(path, "w");
+	    	fwrite(response.data, 1, response.size, outfile);
+	    	fclose(outfile);
+	    	free(path);
+	    	break;
+	    }
+		result = strtok(NULL, delims);
+	}
+	syslog(LOG_ALERT, "Response length: %d", response.size);
+	
+	free(response.data);
+	free(header.data);
+	
+	fail:
+	free(file->id);
+	free(file->hash);
+	free(file->path);
+	free(file);
+    free(req_url);
   	
 }
 
@@ -282,6 +335,22 @@ void getLibrary() {
 
 }
 
+PDL_bool plugin_fetchFile(PDL_JSParameters *params) {
+
+	file_t *file = malloc(sizeof(file_t));
+
+	file->id = strdup(PDL_GetJSParamString(params, 0));
+  	file->hash = strdup(PDL_GetJSParamString(params, 1));
+  	file->path = strdup(PDL_GetJSParamString(params, 2));
+  	
+	dispatch(tp, fetchFile, file);
+    
+  	PDL_JSReply(params, "{\"retVal\":0}");
+
+	return PDL_TRUE;
+
+}
+
 PDL_bool plugin_getLibrary(PDL_JSParameters *params) {
 	
 	dispatch(tp, getLibrary, NULL);    
@@ -308,6 +377,7 @@ int main(int argc, char *argv[]) {
 	PDL_RegisterJSHandler("getLibrary", plugin_getLibrary);
 	PDL_RegisterJSHandler("statfile", plugin_statfile);
 	PDL_RegisterJSHandler("mkdirs", plugin_mkdirs);
+	PDL_RegisterJSHandler("fetchFile", plugin_fetchFile);
 	
 	PDL_JSRegistrationComplete();
 	PDL_CallJS("ready", NULL, 0);

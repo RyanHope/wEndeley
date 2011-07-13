@@ -55,6 +55,15 @@
 #endif
 #endif
 
+struct MemoryStruct {
+  char *data;
+  size_t size; //< bytes remaining (r), bytes accumulated (w)
+
+  size_t start_size; //< only used with ..AndCall()
+  void (*callback)(void*,int,size_t,size_t); //< only used with ..AndCall()
+  void *callback_data; //< only used with ..AndCall()
+};
+
 /** \enum OAuthMethod
  * signature method to used for signing the request.
  */ 
@@ -562,7 +571,8 @@ char *oauth_sign_xmpp (const char *xml,
  * @return  In case of an error NULL is returned; otherwise a pointer to the
  * replied content from HTTP server. latter needs to be freed by caller.
  */
-char *oauth_http_get (const char *u, const char *q);
+char *oauth_http_get (const char *u, const char *q, struct MemoryStruct *header);
+int oauth_http_get3 (const char *u, const char *q, struct MemoryStruct *chunk, struct MemoryStruct *header);
 
 /**
  * do a HTTP GET request, wait for it to finish 

@@ -479,6 +479,10 @@ enyo.kind({
 	
 	pushDocument: function(inSender, data) {
 		var data = enyo.json.parse(data)
+		if (data.files && data.files.length>0) {
+			for (var i in data.files)
+				this.$.plugin.fetchFile(data.id, data.files[i],this.prefs.get('libraryPath'))
+		}
 		this.myLibrary.push(data)
 		var info = 'Fetching Document ' + this.myLibrary.length + ' of ' + this.libraryTotalResults
 		this.$.initText.setContent(info)

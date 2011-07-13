@@ -23,7 +23,7 @@ enyo.kind({
 		
   	pluginReady: function(inSender, inResponse, inRequest) {
   		this.log('~~~~~ Mendeley Plugin Ready ~~~~~')
-  		this.$.plugin.addCallback('pushDocument', enyo.bind(this, 'doPushDocument'))
+  		this.$.plugin.addCallback('pushDocument', enyo.bind(this, 'doPushDocument'), true)
   		this.$.plugin.addCallback('setLibrarySize', enyo.bind(this, 'doSetLibrarySize'))
   		this.doPluginReady()
   	},
@@ -48,6 +48,10 @@ enyo.kind({
 
 	mkdirs: function(path, mode) {
    		return this.$.plugin.callPluginMethod('mkdirs', path, mode)
+  	},
+  	
+  	fetchFile: function(id, hash, path) {
+   		return this.$.plugin.callPluginMethod('fetchFile', id, hash, path)
   	},
   	
 })

@@ -36,15 +36,6 @@
 #include <curl/curl.h>
 #include <sys/stat.h>
 
-struct MemoryStruct {
-  char *data;
-  size_t size; //< bytes remaining (r), bytes accumulated (w)
-
-  size_t start_size; //< only used with ..AndCall()
-  void (*callback)(void*,int,size_t,size_t); //< only used with ..AndCall()
-  void *callback_data; //< only used with ..AndCall()
-};
-
 static size_t
 WriteMemoryCallback(void *ptr, size_t size, size_t nmemb, void *data) {
   size_t realsize = size * nmemb;
@@ -129,6 +120,12 @@ char *oauth_curl_post (const char *u, const char *p, const char *customheader) {
   return (chunk.data);
 }
 
+size_t write_data(void *ptr, size_t size, size_t nmemb, FILE *stream) {
+    size_t written;
+    written = fwrite(ptr, size, nmemb, stream);
+    return written;
+}
+
 /**
  * cURL http get function.
  * the returned string (if not NULL) needs to be freed by the caller
@@ -138,7 +135,7 @@ char *oauth_curl_post (const char *u, const char *p, const char *customheader) {
  * @param customheader specify custom HTTP header (or NULL for none)
  * @return returned HTTP
  */
-char *oauth_curl_get (const char *u, const char *q, const char *customheader) {
+char *oauth_curl_get (const char *u, const char *q, const char *customheader, struct MemoryStruct *header) {
   CURL *curl;
   CURLcode res;
   struct curl_slist *slist=NULL;
@@ -158,6 +155,10 @@ char *oauth_curl_get (const char *u, const char *q, const char *customheader) {
   curl_easy_setopt(curl, CURLOPT_URL, q?t1:u);
   curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&chunk);
   curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
+  if (header) {
+	  curl_easy_setopt(curl, CURLOPT_WRITEHEADER, (void *)header);
+	  curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, WriteMemoryCallback);
+  }
   if (customheader) {
     slist = curl_slist_append(slist, customheader);
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, slist); 
@@ -182,6 +183,52 @@ char *oauth_curl_get (const char *u, const char *q, const char *customheader) {
 
   curl_easy_cleanup(curl);
   return (chunk.data);
+}
+
+int oauth_curl_get2 (const char *u, const char *q, const char *customheader, struct MemoryStruct *chunk, struct MemoryStruct *header) {
+  CURL *curl;
+  CURLcode res;
+  struct curl_slist *slist=NULL;
+  char *t1=NULL;
+
+  if (q) {
+    t1=(char*)xmalloc(sizeof(char)*(strlen(u)+strlen(q)+2));
+    strcpy(t1,u); strcat(t1,"?"); strcat(t1,q);
+  }
+
+  curl = curl_easy_init();
+  if(!curl) return 1;
+  curl_easy_setopt(curl, CURLOPT_URL, q?t1:u);
+  curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)chunk);
+  curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
+  if (header) {
+	  curl_easy_setopt(curl, CURLOPT_WRITEHEADER, (void *)header);
+	  curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, WriteMemoryCallback);
+  }
+  if (customheader) {
+    slist = curl_slist_append(slist, customheader);
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, slist); 
+  }
+#if 0 // TODO - support request methods..
+  if (0) 
+    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "HEAD");
+  else if (0) 
+    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "DELETE");
+#endif
+  curl_easy_setopt(curl, CURLOPT_USERAGENT, OAUTH_USER_AGENT);
+#ifdef OAUTH_CURL_TIMEOUT  
+  curl_easy_setopt(curl, CURLOPT_TIMEOUT, OAUTH_CURL_TIMEOUT);
+  curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
+#endif
+  res = curl_easy_perform(curl);
+  curl_slist_free_all(slist);
+  if (q) free(t1);
+  if (res) {
+    return 1;
+  }
+
+  curl_easy_cleanup(curl);
+  return 0;
 }
 
 /**
@@ -352,8 +399,12 @@ char *oauth_curl_post_data_with_callback (const char *u, const char *data, size_
  * @return  In case of an error NULL is returned; otherwise a pointer to the
  * replied content from HTTP server. latter needs to be freed by caller.
  */
-char *oauth_http_get (const char *u, const char *q) {
-  return oauth_curl_get(u,q,NULL);
+char *oauth_http_get (const char *u, const char *q, struct MemoryStruct *header) {
+  return oauth_curl_get(u,q,NULL,header);
+}
+
+int oauth_http_get3 (const char *u, const char *q, struct MemoryStruct *chunk, struct MemoryStruct *header) {
+  return oauth_curl_get2(u,q,NULL,chunk,header);
 }
 
 /**
@@ -368,7 +419,7 @@ char *oauth_http_get (const char *u, const char *q) {
  * replied content from HTTP server. latter needs to be freed by caller.
  */
 char *oauth_http_get2 (const char *u, const char *q, const char *customheader) {
-  return oauth_curl_get(u,q,customheader);
+  return oauth_curl_get(u,q,customheader, NULL);
 }
 
 /**
