@@ -105,18 +105,18 @@ enyo.kind({
 				{kind: 'FadeScroller', flex:1, components: [
 					{kind: "DividerDrawer", caption: "My Library", className: 'main-list', components: [
 						{name: 'allDocuments',  kind: 'DrawerItem', className: 'drawer-item first', label: 'All Documents', icon: 'all-documents', onclick: 'showDocs'},
-						{name: 'recentlyAdded',  kind: 'DrawerItem', className: 'drawer-item', label: 'Recently Added', icon: 'recently-added', onclick: 'showDocs'},
-						{name: 'favorites',  kind: 'DrawerItem', className: 'drawer-item', label: 'Favorites', icon: 'favorites', onclick: 'showDocs'},
-						{name: 'needsReview',  kind: 'DrawerItem', className: 'drawer-item', label: 'Needs Review', icon: 'needs-review', onclick: 'showDocs'},
-						{name: 'myPublications',  kind: 'DrawerItem', className: 'drawer-item', label: 'My Publications', icon: 'my-publications', onclick: 'showDocs'},
-						{name: 'unsorted',  kind: 'DrawerItem', className: 'drawer-item', label: 'Unsorted', icon: 'unsorted', onclick: 'showDocs'},
-						{name: 'createFolder',  kind: 'DrawerItem', className: 'drawer-item last', label: 'Create Folder...', onclick: 'showDocs'}
+						{name: 'recentlyAdded',  kind: 'DrawerItem', className: 'drawer-item', label: 'Recently Added', icon: 'recently-added', onclick: 'showDocs', disabled: true},
+						{name: 'favorites',  kind: 'DrawerItem', className: 'drawer-item', label: 'Favorites', icon: 'favorites', onclick: 'showDocs', disabled: true},
+						{name: 'needsReview',  kind: 'DrawerItem', className: 'drawer-item', label: 'Needs Review', icon: 'needs-review', onclick: 'showDocs', disabled: true},
+						{name: 'myPublications',  kind: 'DrawerItem', className: 'drawer-item', label: 'My Publications', icon: 'my-publications', onclick: 'showDocs', disabled: true},
+						{name: 'unsorted',  kind: 'DrawerItem', className: 'drawer-item', label: 'Unsorted', icon: 'unsorted', onclick: 'showDocs', disabled: true},
+						{name: 'createFolder',  kind: 'DrawerItem', className: 'drawer-item last', label: 'Create Folder...', onclick: 'showDocs', disabled: true}
 					]},
 					{kind: "DividerDrawer", caption: "Groups", className: 'main-list', components: [
-						{name: 'createGroup',  kind: 'DrawerItem', className: 'drawer-item first last', label: 'Create Group...'}
+						{name: 'createGroup',  kind: 'DrawerItem', className: 'drawer-item first last', label: 'Create Group...', disabled: true}
 					]},
 					{kind: "DividerDrawer", caption: "Trash", className: 'main-list', components: [
-						{name: 'trash',  kind: 'DrawerItem', className: 'drawer-item first last', label: 'All Deleted Documents', icon: 'trash'}
+						{name: 'trash',  kind: 'DrawerItem', className: 'drawer-item first last', label: 'All Deleted Documents', icon: 'trash', disabled: true}
 					]},
 				]},
 				{
@@ -155,14 +155,14 @@ enyo.kind({
 							kind: 'GrabButton'
 						},
 						{kind: "Spacer"},
-						{kind: "ListSelector", value: 2, onChange: "itemChanged", items: [
+						{kind: "ListSelector", value: 2, onChange: "itemChanged", disabled: true, items: [
 							{caption: "Filter by Author's Keyworks", value: 1},
 					        {caption: "Filter by Authors", value: 2},
 					        {caption: "Filter by My Tags", value: 3},
 					        {caption: "Filter by Publications", value: 4},
 					    ]},
 					    {kind: "Spacer"},
-					    {kind: "ListSelector", value: 1, onChange: "itemChanged", items: [
+					    {kind: "ListSelector", value: 1, disabled: true, onChange: "itemChanged", items: [
 							{caption: "All", value: 1},
 					    ]},
 					    {kind: "Spacer"}
@@ -206,7 +206,7 @@ enyo.kind({
 					className: 'enyo-toolbar-light',
 					components: [
 						{kind: 'GrabButton'},
-						{kind: 'Button', content: 'Add Field'}
+						{kind: 'Button', disabled: true, content: 'Add Field'}
 					]
 				}
 	  		]}
