@@ -250,14 +250,16 @@ enyo.kind({
 	},
 	
 	handleDocMenuTap: function(inSender, command) {
-		this.warn(command)
-		this.$.appManager.call( {                                    
-                'id': "com.quickoffice.ar",    
-                params: {                             
-                    target: "/media/internal/FTFETCH.pdf"                  
-                }                                               
-            }                                             
-        ); 
+		if (this.$.viewLibrary.data[inSender.rowIndex]._localFile) {
+			this.warn(command)
+			this.$.appManager.call( {                                    
+	                'id': "com.quickoffice.ar",    
+	                params: {                             
+	                    target: this.$.viewLibrary.data[inSender.rowIndex]._localFile
+	                }                                               
+	            }                                             
+	        )
+        } 
 	},
 	
 	docMenuClosed: function(inSender, inEvent) {
@@ -267,6 +269,10 @@ enyo.kind({
 	listItemHold: function(inSender, inEvent) {
 		this.$.docMenu.setRowIndex(inEvent.rowIndex)
 		this.$.docMenu.openAtEvent(inEvent)
+		if (this.$.viewLibrary.data[inSender.rowIndex]._localFile)
+			this.$.docMenu.$.openFile.setDisabled(false)
+		else
+			this.$.docMenu.$.openFile.setDisabled(true)
 	},
 	
 	listItemClick: function(inSender, inEvent) {
@@ -482,6 +488,7 @@ enyo.kind({
 					path = path.substring(0,250)
 				path = path.replace(/[^\w]/g, "")
 				path = this.prefs.get('libraryPath') + '/' + path + '.pdf'
+				data['_localFile'] = path
 				this.$.plugin.fetchFile(data.id, data.files[i].file_hash, path)
 			}
 		}
