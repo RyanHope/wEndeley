@@ -251,10 +251,11 @@ json_t * getLibraryPage(int page) {
 void fetchFile(file_t *file) {
 	
 	FILE *outfile;
-	char *req_url, *path, *url;
+	char *req_url, *url;
 	struct MemoryStruct header;
 	struct MemoryStruct response;
 	
+	syslog(LOG_ALERT, "%s %s", file->id, file->hash);
   	asprintf(&url, "http://api.mendeley.com/oapi/library/documents/%s/file/%s", file->id, file->hash);
 	
 	header.size = 0;
@@ -262,36 +263,21 @@ void fetchFile(file_t *file) {
 	response.size = 0;
 	response.data = NULL;
 	
-	
 	req_url = oauth_sign_url2(url, NULL, OA_HMAC, NULL, oauth->req_c_key,
 		oauth->req_c_secret, oauth->res_t_key, oauth->res_t_secret);
 	if (oauth_http_get3(req_url, NULL, &response, &header)>0)
 		goto fail;
-	
-	char delims[] = "\r";
-	char *result = NULL;
-	char *tmp;
-	result = strtok(header.data, delims);
-	while( result != NULL ) {
-		tmp = strndup(result+1,19);
-		if (strcmp(tmp,"Content-Disposition")==0) {
-			result[strlen(result)-1] = 0;
-			syslog(LOG_ALERT, "%s", result+44);
-			asprintf(&path, "%s/%s.pdf", file->path, file->hash);
-	    	outfile = fopen(path, "w");
-	    	fwrite(response.data, 1, response.size, outfile);
-	    	fclose(outfile);
-	    	free(path);
-	    	break;
-	    }
-		result = strtok(NULL, delims);
-	}
-	syslog(LOG_ALERT, "Response length: %d", response.size);
+
+	//syslog(LOG_ALERT, "%d %s", response.size, file->path);
+	outfile = fopen(file->path, "w");
+	fwrite(response.data, 1, response.size, outfile);
+	fclose(outfile);
 	
 	free(response.data);
 	free(header.data);
 	
 	fail:
+	free(url);
 	free(file->id);
 	free(file->hash);
 	free(file->path);
@@ -342,6 +328,8 @@ PDL_bool plugin_fetchFile(PDL_JSParameters *params) {
 	file->id = strdup(PDL_GetJSParamString(params, 0));
   	file->hash = strdup(PDL_GetJSParamString(params, 1));
   	file->path = strdup(PDL_GetJSParamString(params, 2));
+  	
+  	syslog(LOG_ALERT, "%s %s %s", file->id, file->hash, file->path);
   	
 	dispatch(tp, fetchFile, file);
     

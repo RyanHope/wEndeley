@@ -235,8 +235,12 @@ enyo.kind({
 	showDetails: function(row) {
 		var paper = this.$.viewLibrary.fetch(row)
 		this.$.details.data = []
-		for (var key in paper)
-			this.$.details.data.push([key,paper[key]])
+		for (var key in paper) {
+			if (key == 'files')
+				this.$.details.data.push([key,enyo.json.stringify(paper[key])])
+			else
+				this.$.details.data.push([key,paper[key]])
+		}
 		this.$.rightGroup.setValue(this.rightPaneLastViewed)
 		this.$.right.setShowing(true)
 		this.$.details.refresh()
@@ -372,20 +376,6 @@ enyo.kind({
 			else
 				return this.sortByAuthor(a, b)
 	},
-	
-	file: function(hash, data) {
-		var filename = data.responseHeaders['Content-Disposition'].split('"')[1]
-		var path = this.prefs.get('libraryPath') + '/' + filename
-		this.$.plugin.writefile(path, data.text)
-		/*var i=0
-		var t=Math.floor(data.text.length/1024)
-		for (;i<t;i++) {
-			this.$.plugin.writefile(path, data.text.substr(i*1024,1024))
-			this.warn([i*1024,data.text.length])
-		}
-		this.warn(data.text.length-i*1024)
-		this.$.plugin.writefile(path, data.text.substr(i*1024))*/
-	},
 
 	getDocumentDetails: function(id) {
 		this.$.plugin.getDocument(enyo.bind(this, 'details'), id)
@@ -462,14 +452,6 @@ enyo.kind({
 					this.refreshView()
 			}
 		}
-		//this.warn(this.$.plugin.)
-		/*this.createComponent({
-			kind: "Mendeley.Client",
-			name: 'client',
-			onOAuthReady: 'handleOAuthReady',
-			onFailure: 'failure',
-			prefs: this.prefs
-		})*/
 	},
 	
 	setLibrarySize: function(inSender, data) {
@@ -480,8 +462,18 @@ enyo.kind({
 	pushDocument: function(inSender, data) {
 		var data = enyo.json.parse(data)
 		if (data.files && data.files.length>0) {
-			for (var i in data.files)
-				this.$.plugin.fetchFile(data.id, data.files[i],this.prefs.get('libraryPath'))
+			for (var i in data.files) {
+				var title = data.title.replace(/ /g,'_')
+				if (title[title.length-1]=='.')
+					title = title.substring(0, title.length-1)
+				var auth = data.authors[0].split(' ')
+				var path = auth[auth.length-1] + data.year + '__' + title
+				if (path.length>250)
+					path = path.substring(0,250)
+				path = path.replace(/[^\w]/g, "")
+				path = this.prefs.get('libraryPath') + '/' + path + '.pdf'
+				this.$.plugin.fetchFile(data.id, data.files[i].file_hash, path)
+			}
 		}
 		this.myLibrary.push(data)
 		var info = 'Fetching Document ' + this.myLibrary.length + ' of ' + this.libraryTotalResults
