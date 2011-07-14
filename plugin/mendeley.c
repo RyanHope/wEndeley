@@ -26,6 +26,7 @@
 #include <oauth.h>
 #include <json.h>
 #include <limits.h>
+#include <openssl/sha.h>
 
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -204,7 +205,6 @@ PDL_bool plugin_authorize(PDL_JSParameters *params) {
 void getDocument(void *ptr) {
 
 	char *id = ptr;
-	syslog(LOG_ALERT, "%s", id);
 
 	char *url, *req_url, *response;
 	char *params[1];
@@ -214,10 +214,6 @@ void getDocument(void *ptr) {
 	req_url = oauth_sign_url2(url, NULL, OA_HMAC, NULL, oauth->req_c_key,
 	oauth->req_c_secret, oauth->res_t_key, oauth->res_t_secret);
 	response = oauth_http_get(req_url, NULL, NULL);
-	//root = json_parse_document(response);
-	//files = json_find_first_label(root, "files");
-	//syslog(LOG_ALERT, "Files: %s", response);//files->child->text); 
-	//json_free_value(&root);
 	
 	params[0] = response;
 	PDL_CallJS("pushDocument", params, 1);
@@ -248,6 +244,39 @@ json_t * getLibraryPage(int page) {
   	
 }
 
+int sha1File(char *filename) {
+
+	FILE *infile;
+	unsigned char sha[20];
+	unsigned char hash[81];
+	char *buffer;
+	long numbytes;
+
+	infile = fopen(filename, "r");
+	if (infile == NULL) return NULL;
+	
+	fseek(infile, 0L, SEEK_END);
+	numbytes = ftell(infile);
+
+	fseek(infile, 0L, SEEK_SET);
+
+	buffer = (char*)calloc(numbytes, sizeof(char));
+
+	if (buffer == NULL) return NULL;
+	
+	fread(buffer, sizeof(char), numbytes, infile);
+	fclose(infile);
+	
+	SHA1(buffer, numbytes, sha);
+	snprintf(hash, 81, "%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
+		sha[0],sha[1],sha[2],sha[3],sha[4],sha[5],sha[6],sha[7],sha[8],sha[9],
+		sha[10],sha[11],sha[12],sha[13],sha[14],sha[15],sha[16],sha[17],sha[18],sha[19]);
+		
+	free(buffer);
+	
+	return hash;
+}
+
 void fetchFile(file_t *file) {
 	
 	FILE *outfile;
@@ -255,7 +284,6 @@ void fetchFile(file_t *file) {
 	struct MemoryStruct header;
 	struct MemoryStruct response;
 	
-	syslog(LOG_ALERT, "%s %s", file->id, file->hash);
   	asprintf(&url, "http://api.mendeley.com/oapi/library/documents/%s/file/%s", file->id, file->hash);
 	
 	header.size = 0;
@@ -268,11 +296,10 @@ void fetchFile(file_t *file) {
 	if (oauth_http_get3(req_url, NULL, &response, &header)>0)
 		goto fail;
 
-	//syslog(LOG_ALERT, "%d %s", response.size, file->path);
 	outfile = fopen(file->path, "w");
 	fwrite(response.data, 1, response.size, outfile);
 	fclose(outfile);
-	
+
 	free(response.data);
 	free(header.data);
 	
@@ -328,9 +355,7 @@ PDL_bool plugin_fetchFile(PDL_JSParameters *params) {
 	file->id = strdup(PDL_GetJSParamString(params, 0));
   	file->hash = strdup(PDL_GetJSParamString(params, 1));
   	file->path = strdup(PDL_GetJSParamString(params, 2));
-  	
-  	syslog(LOG_ALERT, "%s %s %s", file->id, file->hash, file->path);
-  	
+  	 	
 	dispatch(tp, fetchFile, file);
     
   	PDL_JSReply(params, "{\"retVal\":0}");
