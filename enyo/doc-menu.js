@@ -12,7 +12,7 @@ enyo.kind({
 	},
 	
 	components: [
-		{caption: "Open File", name: 'openFile', onclick: 'handleDocMenu', disabled: true},
+		{caption: "Open File", name: 'openFile', onclick: 'handleDocMenu', disabled: false},
 	  	{caption: "Add to Favorites", name: 'addFav', onclick: 'handleDocMenu', disabled: true},
 	  	{caption: "Mark as Read", name: 'markRead', onclick: 'handleDocMenu', disabled: true},
 	  	{caption: "Copy Citation", name: 'copyCitation', onclick: 'handleDocMenu', disabled: true},

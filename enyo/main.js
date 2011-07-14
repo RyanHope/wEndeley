@@ -12,6 +12,9 @@ enyo.kind({
   	rightPaneLastViewed: 'detailsView',
 
 	components: [
+		{ name: 'appManager', kind: 'PalmService',
+	      service: 'palm://com.palm.applicationManager', method: 'open',
+	      onResponse: 'nameResponse' },
 		{
 			kind: 'Mendeley.Plugin',
 			onPluginReady: 'pluginReady',
@@ -248,6 +251,13 @@ enyo.kind({
 	
 	handleDocMenuTap: function(inSender, command) {
 		this.warn(command)
+		this.$.appManager.call( {                                    
+                'id': "com.quickoffice.ar",    
+                params: {                             
+                    target: "/media/internal/FTFETCH.pdf"                  
+                }                                               
+            }                                             
+        ); 
 	},
 	
 	docMenuClosed: function(inSender, inEvent) {
