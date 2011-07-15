@@ -8,6 +8,7 @@ enyo.kind({
   	
   	libraryTotalResults: 0,
   	myLibrary: [],
+  	myLibKeys: {},
   	
   	rightPaneLastViewed: 'detailsView',
 
@@ -402,6 +403,7 @@ enyo.kind({
 		this.$.views.setShowing(false)
 		this.$.init.show()
 		this.myLibrary = []
+		this.myLibKeys = {}
 		this.$.plugin.getLibrary()
 	},
 	
@@ -442,6 +444,8 @@ enyo.kind({
 			name: 'preferences',
 			prefs: this.prefs
 		})
+		this.myLibrary = this.prefs.get('library')
+		this.myLibKeys = this.prefs.get('libraryKeys')
 		var tokens = this.prefs.get('tokens')
 		var response = this.$.plugin.init(
 			'http://www.mendeley.com/oauth/request_token',
@@ -464,8 +468,16 @@ enyo.kind({
 			} else {
 				//this.$.init.setShowing(false)
 				this.$.views.setShowing(true)
-				if (this.prefs.get('syncOnLaunch'))
+				if (this.myLibrary && this.myLibKeys) {
+			 		if (this.prefs.get('syncOnLaunch')) {
+						this.refreshView()
+					} else {
+						this.$.init.hide()
+						this.updateLibView()
+					}
+				} else {
 					this.refreshView()
+				}
 			}
 		}
 	},
@@ -473,6 +485,14 @@ enyo.kind({
 	setLibrarySize: function(inSender, data) {
 		this.libraryTotalResults = data
 		this.warn(data)
+	},
+	
+	updateLibView: function() {
+		this.$.viewLibrary.data = this.myLibrary
+		this.$.views.setShowing(true)
+		this.$.allDocuments.$.count.setContent(this.myLibrary.length)
+		this.$.allDocuments.$.count.setShowing(true)
+		this.$.viewLibrary.refresh()
 	},
 	
 	pushDocument: function(inSender, data) {
@@ -497,12 +517,12 @@ enyo.kind({
 		this.$.initText.setContent(info)
 		if (this.myLibrary.length==this.libraryTotalResults) {
 			this.myLibrary.sort(enyo.bind(this, 'sortByYear'))
-			this.$.viewLibrary.data = this.myLibrary
+			for (i in this.myLibrary)
+				this.myLibKeys[this.myLibrary.id] = i
+			this.prefs.set('library',this.myLibrary)
+			this.prefs.set('libraryKeys',this.myLibKeys)
 			this.$.init.hide()
-			this.$.views.setShowing(true)
-			this.$.allDocuments.$.count.setContent(this.myLibrary.length)
-			this.$.allDocuments.$.count.setShowing(true)
-			this.$.viewLibrary.refresh()
+			this.updateLibView()
 		}
 	}
 
