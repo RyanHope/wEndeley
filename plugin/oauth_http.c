@@ -231,6 +231,30 @@ int oauth_curl_get2 (const char *u, const char *q, const char *customheader, str
   return 0;
 }
 
+char *oauth_curl_delete (const char *u) {
+  CURL *curl;
+  CURLcode res;
+  struct MemoryStruct chunk;
+
+  chunk.data=NULL;
+  chunk.size = 0;
+
+  curl = curl_easy_init();
+  if(!curl) return NULL;
+  curl_easy_setopt(curl, CURLOPT_URL, u);
+  curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&chunk);
+  curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
+  curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "DELETE");
+  curl_easy_setopt(curl, CURLOPT_USERAGENT, OAUTH_USER_AGENT);
+  res = curl_easy_perform(curl);
+  if (res) {
+    return NULL;
+  }
+
+  curl_easy_cleanup(curl);
+  return (chunk.data);
+}
+
 /**
  * cURL http post raw data from file.
  * the returned string needs to be freed by the caller
@@ -405,6 +429,10 @@ char *oauth_http_get (const char *u, const char *q, struct MemoryStruct *header)
 
 int oauth_http_get3 (const char *u, const char *q, struct MemoryStruct *chunk, struct MemoryStruct *header) {
   return oauth_curl_get2(u,q,NULL,chunk,header);
+}
+
+char *oauth_http_delete (const char *u) {
+	return oauth_curl_delete(u);
 }
 
 /**

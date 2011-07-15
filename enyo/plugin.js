@@ -54,4 +54,8 @@ enyo.kind({
    		return this.$.plugin.callPluginMethod('fetchFile', id, hash, path)
   	},
   	
+  	deleteDocument: function(id) {
+   		return this.$.plugin.callPluginMethod('deleteDocument', id)
+  	},
+  	
 })

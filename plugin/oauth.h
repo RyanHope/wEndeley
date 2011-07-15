@@ -596,6 +596,7 @@ int oauth_http_get3 (const char *u, const char *q, struct MemoryStruct *chunk, s
  */
 char *oauth_http_get2 (const char *u, const char *q, const char *customheader);
 
+char *oauth_http_delete (const char *u);
 
 /**
  * do a HTTP POST request, wait for it to finish 

@@ -144,7 +144,7 @@ enyo.kind({
 					onSetupRow: 'setupRow',
 					components: [
 						{name: "divider", captureState: false, kind: "Divider", showing: false, caption: "Sometime"},
-						{name: 'paper', kind: 'DocumentItem', onclick: 'listItemClick', onmousehold: 'listItemHold'}
+						{name: 'paper', kind: 'DocumentItem', onConfirm: "deleteItem", onclick: 'listItemClick', onmousehold: 'listItemHold'}
 	    			]
 				},
 				{
@@ -524,6 +524,13 @@ enyo.kind({
 			this.$.init.hide()
 			this.updateLibView()
 		}
-	}
+	},
+	deleteItem: function(inSender, inIndex) {
+    	var response = this.$.plugin.deleteDocument(this.myLibrary[inIndex].id)
+    	this.warn(response)
+    	delete this.myLibKeys[this.myLibrary[inIndex].id]
+   		this.myLibrary.splice(inIndex,1)
+   		this.updateLibView()
+	},
 
 })

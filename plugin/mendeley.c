@@ -374,6 +374,31 @@ PDL_bool plugin_getLibrary(PDL_JSParameters *params) {
 
 }
 
+PDL_bool plugin_deleteDocument(PDL_JSParameters *params) {
+	
+	char *req_url, *response, *url, *reply;
+	
+	char *id = PDL_GetJSParamString(params, 0);
+
+	asprintf(&url, "http://api.mendeley.com/oapi/library/documents/%s", id);
+	req_url = oauth_sign_url2(url, NULL, OA_HMAC, NULL, oauth->req_c_key,
+		oauth->req_c_secret, oauth->res_t_key, oauth->res_t_secret);
+	syslog(LOG_ALERT, "%s", req_url);
+	response = oauth_http_delete(req_url);
+    
+    asprintf(&reply, "{\"retVal\":0,\"response\":\"%s\"}", response);
+    
+  	PDL_JSReply(params, reply);
+  	
+	free(url);
+    free(req_url);
+  	free(response);
+  	free(reply);
+
+	return PDL_TRUE;
+
+}
+
 int main(int argc, char *argv[]) {
 
 	openlog("us.ryanhope.mendeley.plugin", LOG_PID, LOG_USER);
@@ -391,6 +416,7 @@ int main(int argc, char *argv[]) {
 	PDL_RegisterJSHandler("statfile", plugin_statfile);
 	PDL_RegisterJSHandler("mkdirs", plugin_mkdirs);
 	PDL_RegisterJSHandler("fetchFile", plugin_fetchFile);
+	PDL_RegisterJSHandler("deleteDocument", plugin_deleteDocument);
 	
 	PDL_JSRegistrationComplete();
 	PDL_CallJS("ready", NULL, 0);

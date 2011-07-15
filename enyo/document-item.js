@@ -1,6 +1,6 @@
 enyo.kind({
 	name: 'DocumentItem',
-	kind: 'Item',
+	kind: 'SwipeableItem',
 	layoutKind: 'HFlexLayout',
 	tapHighlight: true,
 	
@@ -26,6 +26,6 @@ enyo.kind({
 				{name: 'pages', style: 'font-size: 80%'},
 			]}
 		]}
-	],
-
+	]
+	
 })
