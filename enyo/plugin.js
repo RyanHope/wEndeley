@@ -45,6 +45,10 @@ enyo.kind({
 	getLibrary: function() {
 		return this.$.plugin.callPluginMethod('getLibrary')
 	},
+	
+	getGroups: function() {
+		return this.$.plugin.callPluginMethod('getGroups')
+	},
 
 	mkdirs: function(path, mode) {
    		return this.$.plugin.callPluginMethod('mkdirs', path, mode)

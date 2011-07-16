@@ -374,6 +374,26 @@ PDL_bool plugin_getLibrary(PDL_JSParameters *params) {
 
 }
 
+PDL_bool plugin_getGroups(PDL_JSParameters *params) {
+	
+	char *req_url, *response, *url, *reply;
+
+	req_url = oauth_sign_url2("http://api.mendeley.com/oapi/library/groups", NULL, OA_HMAC, NULL, oauth->req_c_key,
+		oauth->req_c_secret, oauth->res_t_key, oauth->res_t_secret);
+	response = oauth_http_get(req_url, NULL, NULL);
+    
+    asprintf(&reply, "{\"retVal\":0,\"response\":\"%s\"}", response);
+    
+  	PDL_JSReply(params, reply);
+  	
+    free(req_url);
+  	free(response);
+  	free(reply);
+
+	return PDL_TRUE;
+
+}
+
 PDL_bool plugin_deleteDocument(PDL_JSParameters *params) {
 	
 	char *req_url, *response, *url, *reply;
@@ -416,6 +436,7 @@ int main(int argc, char *argv[]) {
 	PDL_RegisterJSHandler("statfile", plugin_statfile);
 	PDL_RegisterJSHandler("mkdirs", plugin_mkdirs);
 	PDL_RegisterJSHandler("fetchFile", plugin_fetchFile);
+	PDL_RegisterJSHandler("getGroups", plugin_getGroups);
 	PDL_RegisterJSHandler("deleteDocument", plugin_deleteDocument);
 	
 	PDL_JSRegistrationComplete();
