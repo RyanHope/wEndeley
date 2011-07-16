@@ -104,21 +104,11 @@ enyo.kind({
 					]
 				},
 				{kind: 'FadeScroller', flex:1, components: [
-					{kind: "DividerDrawer", caption: "My Library", className: 'main-list', components: [
-						{name: 'allDocuments',  kind: 'DrawerItem', className: 'drawer-item first', label: 'All Documents', icon: 'all-documents', onclick: 'showDocs'},
-						{name: 'recentlyAdded',  kind: 'DrawerItem', className: 'drawer-item', label: 'Recently Added', icon: 'recently-added', onclick: 'showDocs', disabled: true},
-						{name: 'favorites',  kind: 'DrawerItem', className: 'drawer-item', label: 'Favorites', icon: 'favorites', onclick: 'showDocs', disabled: true},
-						{name: 'needsReview',  kind: 'DrawerItem', className: 'drawer-item', label: 'Needs Review', icon: 'needs-review', onclick: 'showDocs', disabled: true},
-						{name: 'myPublications',  kind: 'DrawerItem', className: 'drawer-item', label: 'My Publications', icon: 'my-publications', onclick: 'showDocs', disabled: true},
-						{name: 'unsorted',  kind: 'DrawerItem', className: 'drawer-item', label: 'Unsorted', icon: 'unsorted', onclick: 'showDocs', disabled: true},
-						{name: 'createFolder',  kind: 'DrawerItem', className: 'drawer-item last', label: 'Create Folder...', onclick: 'showDocs', disabled: true}
-					]},
-					{kind: "DividerDrawer", caption: "Groups", className: 'main-list', components: [
-						{name: 'createGroup',  kind: 'DrawerItem', className: 'drawer-item first last', label: 'Create Group...', disabled: true}
-					]},
-					{kind: "DividerDrawer", caption: "Trash", className: 'main-list', components: [
+					{kind: "MendeleyDividerDrawer", caption: "My Library", name: 'mainList', className: 'main-list'},
+					{kind: "MendeleyDividerDrawer", caption: "Groups", name: 'groups', className: 'main-list'},
+					/*{kind: "DividerDrawer", caption: "Trash", className: 'main-list', components: [
 						{name: 'trash',  kind: 'DrawerItem', className: 'drawer-item first last', label: 'All Deleted Documents', icon: 'trash', disabled: true}
-					]},
+					]},*/
 				]},
 				{
 					kind: 'Toolbar',
@@ -155,7 +145,7 @@ enyo.kind({
 						{
 							kind: 'GrabButton'
 						},
-						{kind: "Spacer"},
+						/*{kind: "Spacer"},
 						{kind: "ListSelector", value: 2, onChange: "itemChanged", disabled: true, items: [
 							{caption: "Filter by Author's Keyworks", value: 1},
 					        {caption: "Filter by Authors", value: 2},
@@ -166,12 +156,12 @@ enyo.kind({
 					    {kind: "ListSelector", value: 1, disabled: true, onChange: "itemChanged", items: [
 							{caption: "All", value: 1},
 					    ]},
-					    {kind: "Spacer"}
+					    {kind: "Spacer"}*/
 					]
 				}
 	  		]},
 	  		{name: "right", width: "27%", dismissible: true, showing: false, components: [
-	  			{
+	  			/*{
 					kind: 'Toolbar',
 					name: 'right-bar-top',
 					className: 'enyo-toolbar-light',
@@ -181,7 +171,7 @@ enyo.kind({
 			        		{caption: "Notes", value: "notesView"},
 				      	]}
 					]
-				},
+				},*/
 				{kind: 'Pane', flex: 1, name: 'rightMain', components: [
 					{name: 'detailsView', flex: 1, components: [
 				      	{kind: 'FadeScroller', style: 'height: 100%;', flex:1, components: [
@@ -207,7 +197,7 @@ enyo.kind({
 					className: 'enyo-toolbar-light',
 					components: [
 						{kind: 'GrabButton'},
-						{kind: 'Button', disabled: true, content: 'Add Field'}
+						//{kind: 'Button', disabled: true, content: 'Add Field'}
 					]
 				}
 	  		]}
@@ -245,7 +235,7 @@ enyo.kind({
 			else
 				this.$.details.data.push([key,paper[key]])
 		}
-		this.$.rightGroup.setValue(this.rightPaneLastViewed)
+		//this.$.rightGroup.setValue(this.rightPaneLastViewed)
 		this.$.right.setShowing(true)
 		this.$.details.refresh()
 	},
@@ -326,7 +316,7 @@ enyo.kind({
 			this.$.paper.$.pages.setContent('p. '+info.pages)
 			this.$.paper.$.pages.addClass('smallLeftPad')
 		}			
-		if (info.dateAccessed==null)
+		/*if (info.dateAccessed==null)
 			this.$.paper.$.read.addClass('readNo')
 		else
 			this.$.paper.$.read.addClass('readYes')
@@ -337,7 +327,7 @@ enyo.kind({
 		} else {
 			this.$.paper.$.fav.removeClass('favYes')
 			this.$.paper.$.fav.addClass('favNo')
-		}
+		}*/
 
 		if (info.files && info.files.length>0)
 			this.$.paper.$.pdf.addClass('pdfYes')
@@ -486,12 +476,22 @@ enyo.kind({
 		this.libraryTotalResults = data
 		this.warn(data)
 	},
-	
+		
 	updateLibView: function() {
 		this.$.viewLibrary.data = this.myLibrary
 		this.$.views.setShowing(true)
-		this.$.allDocuments.$.count.setContent(this.myLibrary.length)
-		this.$.allDocuments.$.count.setShowing(true)
+		this.$.mainList.data = {
+			allDocuments: {label: 'All Documents', icon: 'all-documents', count: this.myLibrary.length}
+		}
+		this.$.mainList.updateControls()
+		var groups = this.$.plugin.getGroups().response
+		this.$.groups.data = {}
+		for (i in groups) {
+			this.$.groups.data[groups[i].id] = {label: groups[i].name, count: groups[i].size, icon: 'group-folder'}
+			this.warn(groups[i])
+		}
+		this.$.groups.data['create-group'] = {label: 'Create Group...'}
+		this.$.groups.updateControls()
 		this.$.viewLibrary.refresh()
 	},
 	

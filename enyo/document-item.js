@@ -11,8 +11,8 @@ enyo.kind({
 	components: [
 		{kind: 'VFlexBox', components: [
 			{kind: "Spacer"},
-			{name: 'fav', className: 'docIcon'},
-			{name: 'read', className: 'docIcon'},
+			//{name: 'fav', className: 'docIcon'},
+			//{name: 'read', className: 'docIcon'},
 			{name: 'pdf', className: 'docIcon'},
 			{kind: "Spacer"}
 		]},

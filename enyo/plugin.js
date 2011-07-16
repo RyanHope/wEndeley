@@ -47,7 +47,7 @@ enyo.kind({
 	},
 	
 	getGroups: function() {
-		return this.$.plugin.callPluginMethod('getGroups')
+		return enyo.json.parse(this.$.plugin.callPluginMethod('getGroups'))
 	},
 
 	mkdirs: function(path, mode) {

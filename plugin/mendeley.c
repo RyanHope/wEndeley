@@ -382,7 +382,7 @@ PDL_bool plugin_getGroups(PDL_JSParameters *params) {
 		oauth->req_c_secret, oauth->res_t_key, oauth->res_t_secret);
 	response = oauth_http_get(req_url, NULL, NULL);
     
-    asprintf(&reply, "{\"retVal\":0,\"response\":\"%s\"}", response);
+    asprintf(&reply, "{\"retVal\":0,\"response\":%s}", response);
     
   	PDL_JSReply(params, reply);
   	

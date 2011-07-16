@@ -7,7 +7,8 @@ enyo.kind({
 	
 	published: {
 		label: '',
-		disabled: false
+		disabled: false,
+		count: 0,
 	},
 	
 	components: [
@@ -19,6 +20,12 @@ enyo.kind({
 	rendered: function() {
 		this.$.icon.addClass(this.icon)
 		this.$.text.setContent(this.label)
+		if (this.count) {
+			this.$.count.setContent(this.count)
+			this.$.count.setShowing(true)
+		} else {
+			this.$.count.setShowing(false)
+		}
 	},
 	
 })
