@@ -400,8 +400,8 @@ PDL_bool plugin_deleteDocument(PDL_JSParameters *params) {
 	
 	char *id = PDL_GetJSParamString(params, 0);
 
-	asprintf(&url, "http://api.mendeley.com/oapi/library/documents/%s", id);
-	req_url = oauth_sign_url2(url, NULL, OA_HMAC, NULL, oauth->req_c_key,
+	asprintf(&url, "http://api.mendeley.com/oapi/library/documents/%s/", id);
+	req_url = oauth_sign_url2(url, NULL, OA_HMAC, "DELETE", oauth->req_c_key,
 		oauth->req_c_secret, oauth->res_t_key, oauth->res_t_secret);
 	syslog(LOG_ALERT, "%s", req_url);
 	response = oauth_http_delete(req_url);
