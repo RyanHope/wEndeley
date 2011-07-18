@@ -482,7 +482,11 @@ enyo.kind({
 	},
 	
 	accountReady: function() {
- 		if (this.prefs.get('syncOnLaunch')) {
+		if (this.prefs.get('firstLaunch')) {
+			this.warn('First Launch')
+			this.prefs.set('firstLaunch', false)
+			this.refreshView()
+		} else if (this.prefs.get('syncOnLaunch')) {
 			this.refreshView()
 		} else {
 			this.$.init.hide()
@@ -578,10 +582,9 @@ enyo.kind({
 				this.myLibKeys[this.myLibrary.id] = i
 			this.prefs.set('library',this.myLibrary)
 			this.prefs.set('libraryKeys',this.myLibKeys)
+			this.$.viewLibrary.data = this.myLibrary
 			this.$.init.hide()
-			this.$.views.setShowing(true)
-			this.$.viewLibrary.setShowing(true)
-			this.$.viewLibrary.refresh()
+			this.showLibrary()
 			this.updateLibView()
 		}
 	},
