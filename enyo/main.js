@@ -14,8 +14,7 @@ enyo.kind({
 
 	components: [
 		{ name: 'appManager', kind: 'PalmService',
-	      service: 'palm://com.palm.applicationManager', method: 'open',
-	      onResponse: 'nameResponse' },
+	      service: 'palm://com.palm.applicationManager', method: 'open'},
 		{
 			kind: 'Mendeley.Plugin',
 			onPluginReady: 'pluginReady',
@@ -242,14 +241,28 @@ enyo.kind({
 	
 	handleDocMenuTap: function(inSender, command) {
 		if (this.$.viewLibrary.data[inSender.rowIndex]._localFile) {
-			this.warn(command)
-			this.$.appManager.call( {                                    
-	                'id': "com.quickoffice.ar",    
-	                params: {                             
-	                    target: this.$.viewLibrary.data[inSender.rowIndex]._localFile
-	                }                                               
-	            }                                             
-	        )
+			if (command == 'openFile') {
+				this.$.appManager.call( {                                    
+		                'id': "com.quickoffice.ar",    
+		                params: {                             
+		                    target: this.$.viewLibrary.data[inSender.rowIndex]._localFile
+		                }                                               
+		            }                                             
+		        )
+	        } else if (command == 'sendByEmail') {
+	        	this.$.appManager.call( {                                    
+		                'id': "com.palm.app.email",    
+		                params: {
+		                	summary: 'Here is a great paper!',
+		                	text: 'I think you should read this paper. See attached.',
+		                	attachments: [{
+		                		fullPath: this.$.viewLibrary.data[inSender.rowIndex]._localFile,
+		                		mimeType: 'application/pdf'
+		                	}]
+		                }                                               
+		            }                                             
+		        )
+	        }
         } 
 	},
 	
@@ -260,10 +273,13 @@ enyo.kind({
 	listItemHold: function(inSender, inEvent) {
 		this.$.docMenu.setRowIndex(inEvent.rowIndex)
 		this.$.docMenu.openAtEvent(inEvent)
-		if (this.$.viewLibrary.data[inSender.rowIndex]._localFile)
+		if (this.$.viewLibrary.data[inSender.rowIndex]._localFile) {
 			this.$.docMenu.$.openFile.setDisabled(false)
-		else
+			this.$.docMenu.$.sendByEmail.setDisabled(false)
+		} else {
 			this.$.docMenu.$.openFile.setDisabled(true)
+			this.$.docMenu.$.sendByEmail.setDisabled(true)
+		}
 	},
 	
 	listItemClick: function(inSender, inEvent) {
