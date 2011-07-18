@@ -403,6 +403,12 @@ enyo.kind({
 	getDocumentDetails: function(id) {
 		this.$.plugin.getDocument(enyo.bind(this, 'details'), id)
 	},
+	
+	showLibrary: function() {
+		this.$.views.setShowing(true)
+		this.$.viewLibrary.setShowing(true)
+		this.$.viewLibrary.refresh()
+	},
 
 	refreshView: function(inSender, inEvent) {
 		this.$.initText.setContent('Fetching Document Details...')
@@ -480,9 +486,10 @@ enyo.kind({
 			this.refreshView()
 		} else {
 			this.$.init.hide()
+			this.showLibrary()
 			this.updateLibView()
 		}
-	},
+	},	
 	
 	pluginReady: function(inSender) {
 		this.createComponent({
@@ -495,11 +502,7 @@ enyo.kind({
 		
 		this.myLibrary = this.prefs.get('library')
 		this.myLibKeys = this.prefs.get('libraryKeys')
-		
 		this.$.viewLibrary.data = this.myLibrary
-		this.$.views.setShowing(true)
-		this.$.viewLibrary.setShowing(true)
-		this.$.viewLibrary.refresh()
 		
 		var tokens = this.prefs.get('tokens')
 		var response =  this.$.plugin.init(
