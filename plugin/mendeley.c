@@ -114,6 +114,46 @@ PDL_bool plugin_statfile(PDL_JSParameters *params) {
 	return PDL_TRUE;
 }
 
+PDL_bool plugin_request(PDL_JSParameters *params) {
+
+	char *req_url = oauth_sign_url2(oauth->request_token_uri, NULL, OA_HMAC, NULL, oauth->req_c_key, oauth->req_c_secret, oauth->res_t_key, oauth->res_t_secret);
+	syslog(LOG_ALERT, "%s", req_url);
+  	char *response = oauth_http_get(req_url, NULL, NULL);
+  	syslog(LOG_ALERT, "%s", response);
+	
+	int rc;
+    char **rv = NULL;
+    rc = oauth_split_url_parameters(response, &rv);
+    
+	if (rc!=4) {
+	
+		PDL_JSReply(params, "{\"retVal\":1}");
+	
+	} else {
+	
+		/*if (oauth->res_t_key) free(oauth->res_t_key);
+		if (oauth->res_t_secret) free(oauth->res_t_secret);
+	    
+	    qsort(rv, rc, sizeof(char *), oauth_cmpstringp);
+	    oauth->res_t_key = strdup();
+		oauth->res_t_secret = strdup();*/
+		
+		char *reply = 0;		
+		asprintf(&reply, "{\"retVal\":0,\"url\":\"%s?%s\",\"key\":\"%s\",\"secret\":\"%s\"}", oauth->authorize_token_uri, response, &(rv[1][12]), &(rv[2][19]));
+		PDL_JSReply(params, reply);
+	
+		if(reply) free(reply);
+		
+	}
+		
+	if(rv) free(rv);
+	if(req_url) free(req_url);
+  	if(response) free(response);
+  	
+  	return PDL_TRUE;
+
+}
+
 PDL_bool plugin_init(PDL_JSParameters *params) {
 
   	const char *res_t_key = PDL_GetJSParamString(params, 5);
@@ -124,78 +164,62 @@ PDL_bool plugin_init(PDL_JSParameters *params) {
   	oauth->access_token_uri = strdup(PDL_GetJSParamString(params, 2));
   	oauth->req_c_key = strdup(PDL_GetJSParamString(params, 3));
   	oauth->req_c_secret = strdup(PDL_GetJSParamString(params, 4));
-  	oauth->verifier = 0;
   	 	
-  	if (strlen(res_t_key)==0 || strlen(res_t_secret)==0) {
-  	
-  		oauth->res_t_key = 0;
-  		oauth->res_t_secret = 0;
-  		
-		char *req_url = oauth_sign_url2(oauth->request_token_uri, NULL, OA_HMAC, NULL, oauth->req_c_key, oauth->req_c_secret, oauth->res_t_key, oauth->res_t_secret);
-	  	char *response = oauth_http_get(req_url, NULL, NULL);
-			
-		char *reply = 0;		
-		asprintf(&reply, "{\"retVal\":0,\"authorize\":\"%s?%s\"}", oauth->authorize_token_uri, response);
-		PDL_JSReply(params, reply);
-		
-		int rc;
-	    char **rv = NULL;
-	    rc = oauth_split_url_parameters(response, &rv);
-	    
-	    qsort(rv, rc, sizeof(char *), oauth_cmpstringp);
-	    oauth->res_t_key = strdup(&(rv[1][12]));
-		oauth->res_t_secret = strdup(&(rv[2][19]));
-		syslog(LOG_ALERT, "key:    '%s'\nsecret: '%s'",oauth->res_t_key, oauth->res_t_secret);
-			
-		if(rv) free(rv);
-		if(req_url) free(req_url);
-	  	if(reply) free(reply);
-	  	if(response) free(response);
-	  	
+  	if (strlen(res_t_key)==0 || strlen(res_t_secret)==0) {	
+  		PDL_JSReply(params, "{\"retVal\":0,\"authorized\":0}");
   	} else {
-  	
   		oauth->res_t_key = strdup(res_t_key);
   		oauth->res_t_secret = strdup(res_t_secret);
-  		
-  		PDL_JSReply(params, "{\"retVal\":0}");
-  	
+  		PDL_JSReply(params, "{\"retVal\":0,\"authorized\":1}");
   	}
   	
 	return PDL_TRUE;
 	
-
 }
 
 PDL_bool plugin_authorize(PDL_JSParameters *params) {
 
 	oauth->verifier = PDL_GetJSParamString(params, 0);
+	char *key = PDL_GetJSParamString(params, 1);
+	char *secret = PDL_GetJSParamString(params, 2);
+	
+	syslog(LOG_ALERT, "%s %s %s", oauth->verifier, key, secret);
 	
 	char *url = 0;
 	asprintf(&url, "%s?oauth_verifier=%s", oauth->access_token_uri, oauth->verifier);
-	syslog(LOG_ALERT, "%s", url);
 	
-	char *req_url = oauth_sign_url2(url, NULL, OA_HMAC, NULL, oauth->req_c_key, oauth->req_c_secret, oauth->res_t_key, oauth->res_t_secret);
+	char *req_url = oauth_sign_url2(url, NULL, OA_HMAC, NULL, oauth->req_c_key, oauth->req_c_secret, key, secret);
   	char *response = oauth_http_get(req_url, NULL, NULL);
-	
-	free(oauth->res_t_key);
-	free(oauth->res_t_secret);
 	
   	int rc;
     char **rv = NULL;
     rc = oauth_split_url_parameters(response, &rv);
     
-    qsort(rv, rc, sizeof(char *), oauth_cmpstringp);
-  	oauth->res_t_key=strdup(&(rv[0][12]));
-  	oauth->res_t_secret=strdup(&(rv[1][19]));
+    if (rc==1) {
     
-    char *reply = 0;
-    asprintf(&reply, "{\"retVal\":0,\"accessTokens\":[\"%s\",\"%s\"]}", oauth->res_t_key, oauth->res_t_secret);
-  	PDL_JSReply(params, reply);
+    	PDL_JSReply(params, "{\"retVal\":1}");
+	
+	} else {
+	
+		syslog(LOG_ALERT, "PARAMS: %d", rc);
+		
+		free(oauth->res_t_key);
+		free(oauth->res_t_secret);
+    
+	    qsort(rv, rc, sizeof(char *), oauth_cmpstringp);
+	  	oauth->res_t_key = strdup(&(rv[0][12]));
+	  	oauth->res_t_secret = strdup(&(rv[1][19]));
+	    
+	    char *reply = 0;
+	    asprintf(&reply, "{\"retVal\":0,\"accessTokens\":[\"%s\",\"%s\"]}", oauth->res_t_key, oauth->res_t_secret);
+	  	PDL_JSReply(params, reply);
+  		if(reply) free(reply);
+  		
+  	}
   	
   	if(rv) free(rv);
   	if(url) free(url);
   	if(response) free(response);
-  	if(reply) free(reply);
   	if(req_url) free(req_url);
 
 	return PDL_TRUE;
@@ -429,8 +453,10 @@ int main(int argc, char *argv[]) {
 	PDL_Init(0);
 	
 	oauth = malloc(sizeof(oauth_t));
+	memset(oauth, 0, sizeof(oauth_t));
 	
 	PDL_RegisterJSHandler("init", plugin_init);
+	PDL_RegisterJSHandler("request", plugin_request);
 	PDL_RegisterJSHandler("authorize", plugin_authorize);
 	PDL_RegisterJSHandler("getLibrary", plugin_getLibrary);
 	PDL_RegisterJSHandler("statfile", plugin_statfile);

@@ -433,15 +433,55 @@ enyo.kind({
 	
 	confirmClick: function(insender, e) {
 		this.$.newAccount.close()
-		var response = this.$.plugin.authorize(this.$.pin.getValue())
+		var response = this.$.plugin.authorize(this.$.pin.getValue(),this.$.newAccount.key,this.$.newAccount.secret)
+		this.warn(response)
 		if (response.retVal == 0) {
-			if (response.accessTokens)
+			if (response.accessTokens) {
 				this.prefs.set('tokens', response.accessTokens)
+				this.accountReady()
+			} 
+		} else {
+			this.$.initSpinner.setShowing(false)
+			this.$.initText.setContent('OAuth Verification Failed')
 		}
 	},
 	
 	cancelClick: function(insender, e) {
 		this.$.newAccount.close()
+		var tokens = this.prefs.get('tokens')
+		if (tokens[0] && tokens[1]) {
+			this.$.views.setShowing(true)
+			this.$.init.setShowing(false)
+		} else {
+			this.$.initSpinner.setShowing(false)
+			this.$.initText.setContent('No Configured Mendeley Account')
+		}			
+	},
+	
+	account: function() {
+		var response = this.$.plugin.request()
+		this.warn(response)
+		if (response.retVal == 0 && response.url && response.key && response.secret)
+			this.setupAccount(response.url, response.key, response.secret)
+	},
+	
+	setupAccount: function(url,key,secret) {
+		this.$.initText.setContent('Adding Mendeley Account...')
+		this.$.initSpinner.setShowing(true)
+		this.$.newAccount.setUrl(url)
+		this.$.newAccount.setKey(key)
+		this.$.newAccount.setSecret(secret)		
+		this.$.newAccount.openAtTopCenter()
+		this.$.pin.setValue('')
+	},
+	
+	accountReady: function() {
+ 		if (this.prefs.get('syncOnLaunch')) {
+			this.refreshView()
+		} else {
+			this.$.init.hide()
+			this.updateLibView()
+		}
 	},
 	
 	pluginReady: function(inSender) {
@@ -450,10 +490,19 @@ enyo.kind({
 			name: 'preferences',
 			prefs: this.prefs
 		})
+		
+		this.$.plugin.mkdirs(this.prefs.get('libraryPath'),777)
+		
 		this.myLibrary = this.prefs.get('library')
 		this.myLibKeys = this.prefs.get('libraryKeys')
+		
+		this.$.viewLibrary.data = this.myLibrary
+		this.$.views.setShowing(true)
+		this.$.viewLibrary.setShowing(true)
+		this.$.viewLibrary.refresh()
+		
 		var tokens = this.prefs.get('tokens')
-		var response = this.$.plugin.init(
+		var response =  this.$.plugin.init(
 			'http://www.mendeley.com/oauth/request_token',
 			'http://www.mendeley.com/oauth/authorize',
 			'http://www.mendeley.com/oauth/access_token',
@@ -464,28 +513,16 @@ enyo.kind({
 		)
 		
 		if (response.retVal == 0) {
-			
-			this.warn(this.$.plugin.mkdirs(this.prefs.get('libraryPath'),777))
-			
-			if (response.authorize) {
-				this.warn(response.authorize)
-				this.$.newAccount.setUrl(response.authorize)
-				this.$.newAccount.openAtTopCenter()
+			if (response.authorized) {
+				this.accountReady()
 			} else {
-				//this.$.init.setShowing(false)
-				this.$.views.setShowing(true)
-				if (this.myLibrary && this.myLibKeys) {
-			 		if (this.prefs.get('syncOnLaunch')) {
-						this.refreshView()
-					} else {
-						this.$.init.hide()
-						this.updateLibView()
-					}
-				} else {
-					this.refreshView()
-				}
+				var response = this.$.plugin.request()
+				this.warn(response)
+				if (response.retVal == 0 && response.url && response.key && response.secret)
+					this.setupAccount(response.url, response.key, response.secret)
 			}
 		}
+
 	},
 	
 	setLibrarySize: function(inSender, data) {
@@ -494,10 +531,12 @@ enyo.kind({
 	},
 		
 	updateLibView: function() {
-		this.$.viewLibrary.data = this.myLibrary
 		this.$.views.setShowing(true)
+		var libLen = 0
+		if (this.myLibrary && this.myLibrary.length)
+			libLen = this.myLibrary.length
 		this.$.mainList.data = {
-			allDocuments: {label: 'All Documents', icon: 'all-documents', count: this.myLibrary.length}
+			allDocuments: {label: 'All Documents', icon: 'all-documents', count: libLen}
 		}
 		this.$.mainList.updateControls()
 		var groups = this.$.plugin.getGroups().response
@@ -508,7 +547,6 @@ enyo.kind({
 		}
 		this.$.groups.data['create-group'] = {label: 'Create Group...'}
 		this.$.groups.updateControls()
-		this.$.viewLibrary.refresh()
 	},
 	
 	pushDocument: function(inSender, data) {
@@ -538,6 +576,9 @@ enyo.kind({
 			this.prefs.set('library',this.myLibrary)
 			this.prefs.set('libraryKeys',this.myLibKeys)
 			this.$.init.hide()
+			this.$.views.setShowing(true)
+			this.$.viewLibrary.setShowing(true)
+			this.$.viewLibrary.refresh()
 			this.updateLibView()
 		}
 	},

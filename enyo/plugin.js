@@ -38,8 +38,12 @@ enyo.kind({
 		return enyo.json.parse(this.$.plugin.callPluginMethod('init', request_token_uri, authorize_token_uri, access_token_uri, req_c_key, req_c_secret, res_t_key, res_t_secret))
 	},
 	
-	authorize: function(verifier) {
-		return enyo.json.parse(this.$.plugin.callPluginMethod('authorize', verifier))
+	authorize: function(verifier,key,secret) {
+		return enyo.json.parse(this.$.plugin.callPluginMethod('authorize', verifier, key, secret))
+	},
+	
+	request: function() {
+		return enyo.json.parse(this.$.plugin.callPluginMethod('request'))
 	},
 	
 	getLibrary: function() {
