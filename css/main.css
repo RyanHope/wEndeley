@@ -80,6 +80,9 @@
 .main-list .icon.group-folder {
 	background-image: url(../images/group-folder.png);
 }
+.main-list .icon.download-doc {
+	background-image: url(../images/download-doc.png);
+}
 
 .folder-count {
 	position: relative;
