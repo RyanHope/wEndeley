@@ -4,9 +4,9 @@ ifdef DEVICE
 		CC=/opt/PalmPDK/arm-gcc/bin/arm-none-linux-gnueabi-gcc
 	else
 		CC=/srv/preware/build/toolchain/cs07q3armel/build/arm-2007q3/bin/arm-none-linux-gnueabi-gcc
-		ROOT=/srv/preware/build/staging/armv7
-		PREFIX=/usr
 	endif
+	ROOT=/srv/preware/build/staging/armv7
+	PREFIX=/usr
 else
 	ifeq ($(shell uname -s),Darwin)
 		export CC=/opt/PalmPDK/i686-gcc/bin/i686-nptl-linux-gnu-gcc --sysroot=/opt/PalmPDK/i686-gcc/sys-root
