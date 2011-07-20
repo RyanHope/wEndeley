@@ -316,8 +316,12 @@ enyo.kind({
 
 		if (info.title)
 			this.$.paper.$.title.setContent(info.title)
-		if (info.authors)
-			this.$.paper.$.authors.setContent(info.authors.join('; '))
+		if (info.authors) {
+			var authors = []
+			for (var i in info.authors)
+				authors.push(info.authors[i].surname+', '+info.authors[i].forename)
+			this.$.paper.$.authors.setContent(authors.join('; '))
+		}
 		if (info.publication_outlet)
 			this.$.paper.$.pubOutlet.setContent(info.publication_outlet)
 		if (info.volume) {
@@ -559,7 +563,6 @@ enyo.kind({
 	pushDocument: function(inSender, data) {
 		var data = enyo.json.parse(data)
 		if (data.files && data.files.length>0) {
-			this.warn(data)
 			for (var i in data.files) {
 				var title = data.title.replace(/ /g,'_')
 				if (title[title.length-1]=='.')
