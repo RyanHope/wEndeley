@@ -567,7 +567,9 @@ enyo.kind({
 				var title = data.title.replace(/ /g,'_')
 				if (title[title.length-1]=='.')
 					title = title.substring(0, title.length-1)
-				var auth = data.authors[0].surname
+        var auth = ""
+        if (data.authors && data.authors.length > 0)
+          auth = data.authors[0].surname
 				var path = auth[auth.length-1] + data.year + '__' + title
 				if (path.length>250)
 					path = path.substring(0,250)
