@@ -560,7 +560,7 @@ enyo.kind({
 		this.$.groups.updateControls()
 	},
 	
-  filenameForReference : function(data) {
+  filenameForReference : function(data, index) {
     // Get filename for this reference.
     // Extract metadata from file and use it to construct a filename.
 
@@ -584,9 +584,12 @@ enyo.kind({
     var year = ""
     if (data.year)
       year = data.year
-
-    // Now put these together to get the basename of the file
-    var path = auth + year + '__' + title
+      
+    var path = ''
+    if (index)
+		path = auth + year + '-' + index + '__' + title
+	else
+		path = auth + year + '__' + title
 
     // Enforce a limit on very long filenames/titles/etc
     if (path.length>250)
@@ -602,20 +605,24 @@ enyo.kind({
   },
 
 	pushDocument: function(inSender, data) {
-    var data = enyo.json.parse(data)
-    if (data.files && data.files.length>0) {
-      for (var i in data.files) {
-        // This path isn't unique per-file (not a function of iteration variable 'i')
-        // and as such if we have multiple files, this will do weird things.
-        // Maybe just download the first file for a reference or something?
-        var path = data['_localFile'] = this.filenameForReference(data)
-
-        // Fetch the file if it doesn't exist or hash fails.
-        var checkResponse = this.$.plugin.checkFile(data.id, data.files[i].file_hash, path)
-        if (checkResponse.retVal == 0)
-          this.$.plugin.fetchFile(data.id, data.files[i].file_hash, path)
-      }
-    }
+    	var data = enyo.json.parse(data)
+    	if (data.files && data.files.length>0) {
+      		if (data.files.length>1) {
+        		for (var i in data.files) {
+          			var path = data['_localFile'] = this.filenameForReference(data, i+1)
+          			// Fetch the file if it doesn't exist or hash fails.
+          			var checkResponse = this.$.plugin.checkFile(data.id, data.files[i].file_hash, path)
+          			if (checkResponse.retVal == 0)
+            			this.$.plugin.fetchFile(data.id, data.files[i].file_hash, path)
+				}	
+  			} else {
+  				var path = data['_localFile'] = this.filenameForReference(data, 0)
+      			// Fetch the file if it doesn't exist or hash fails.
+      			var checkResponse = this.$.plugin.checkFile(data.id, data.files[i].file_hash, path)
+      			if (checkResponse.retVal == 0)
+        			this.$.plugin.fetchFile(data.id, data.files[i].file_hash, path)
+  			}
+    	}
 		this.myLibrary.push(data)
 		var info = 'Fetching Document ' + this.myLibrary.length + ' of ' + this.libraryTotalResults
 		this.$.initText.setContent(info)
