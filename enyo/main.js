@@ -560,22 +560,52 @@ enyo.kind({
 		this.$.groups.updateControls()
 	},
 	
+  filenameForReference : function(data) {
+    // Get filename for this reference.
+    // Extract metadata from file and use it to construct a filename.
+
+    var title = "[untitled]";
+    if (data.title) {
+      // Convert spaces to underscores
+      title = data.title.replace(/ /g,'_')
+
+      // If last character is a period, remove it.
+      if (title[title.length-1]=='.')
+        title = title.substring(0, title.length-1)
+    }
+
+    // Only use the last character of the author's last name... (???)
+    var auth = ""
+    if (data.authors && (data.authors.length > 0) && data.authors[0].surname) {
+      var surname = data.authors[0].surname
+      auth = surname[surname.length-1]
+    }
+
+    var year = ""
+    if (data.year)
+      year = data.year
+
+    // Now put these together to get the basename of the file
+    var path = auth + year + '__' + title
+
+    // Enforce a limit on very long filenames/titles/etc
+    if (path.length>250)
+      path = path.substring(0,250)
+
+    // Remove any non alphanumeric (or underscore) characters
+    path = path.replace(/\W/g, "")
+
+    // Build the full filename
+    path = this.prefs.get('libraryPath') + '/' + path + '.pdf'
+
+    return path;
+  },
+
 	pushDocument: function(inSender, data) {
 		var data = enyo.json.parse(data)
 		if (data.files && data.files.length>0) {
 			for (var i in data.files) {
-				var title = data.title.replace(/ /g,'_')
-				if (title[title.length-1]=='.')
-					title = title.substring(0, title.length-1)
-        var auth = ""
-        if (data.authors && data.authors.length > 0)
-          auth = data.authors[0].surname
-				var path = auth[auth.length-1] + data.year + '__' + title
-				if (path.length>250)
-					path = path.substring(0,250)
-				path = path.replace(/[^\w]/g, "")
-				path = this.prefs.get('libraryPath') + '/' + path + '.pdf'
-				data['_localFile'] = path
+        var path = data['_localFile'] = this.filenameForReference(data)
 				this.$.plugin.fetchFile(data.id, data.files[i].file_hash, path)
 			}
 		}
