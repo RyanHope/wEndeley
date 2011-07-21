@@ -66,4 +66,7 @@ enyo.kind({
    		return this.$.plugin.callPluginMethod('deleteDocument', id)
   	},
   	
+  	checkFile: function(id, hash, path) {
+   		return enyo.json.parse(this.$.plugin.callPluginMethod('checkFile', id, hash, path))
+  	},
 })

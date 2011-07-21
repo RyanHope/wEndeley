@@ -309,24 +309,6 @@ void fetchFile(file_t *file) {
 	struct MemoryStruct header;
 	struct MemoryStruct response;
 
-  // TODO: Should this update some state in the application in terms
-  //       of wether or not the file exists on disk?
-
-  // Check hash on file, if it exists
-  char * hash = sha1File(file->path);
-  if (hash) {
-    char match = !strcmp(hash,file->hash);
-    free(hash);
-    if (match)
-      // Match! No need to fetch anything...
-      goto cleanup;
-
-    syslog(LOG_ALERT, "Found existing file %s with incorrect hash %s! Re-downloading...\n", file->path, hash);
-
-    // If we found the file, but has the wrong hash..remove it!
-    // (Probably not strictly necessary, but seems cleaner...)
-    unlink(file->path);
-  }
 
   asprintf(&url, "http://api.mendeley.com/oapi/library/documents/%s/file/%s", file->id, file->hash);
 	
@@ -390,6 +372,50 @@ void getLibrary() {
 	while (count>=0)
 		dispatch(tp, getDocument, (void *) document_ids[count--]);		
 
+}
+
+// Determine if the file exists, and verify hash
+// Returns 1 iff the file exists and hash checks out
+PDL_bool plugin_checkFile(PDL_JSParameters *params) {
+  // Demarshal the arguments
+  const char * name = PDL_GetJSParamString(params, 0);
+  const char * hash = PDL_GetJSParamString(params, 1);
+  const char * path = PDL_GetJSParamString(params, 2);
+  
+  static const char * REPLY_NOFILE = "{\"retVal\":0}";
+  static const char * REPLY_VALIDFILE = "{\"retVal\":1}";
+
+  // Verify arguments...kinda
+  if (!name || !hash || !path) return PDL_FALSE;
+
+  // Check hash on file, if it exists
+  char * actualhash = sha1File(path);
+  if (!actualhash) {
+    // File doesn't exist
+    PDL_JSReply(params, REPLY_NOFILE);
+
+    return PDL_TRUE;
+  }
+
+  // Check if the hash matches
+  char match = !strcmp(actualhash,hash);
+  free(actualhash);
+
+  if (match) {
+    PDL_JSReply(params, REPLY_VALIDFILE);
+
+    return PDL_TRUE;
+  }
+
+  // Hmm. File exists, but hash check failed.
+  // Remove the file and report file doesn't exist.
+  syslog(LOG_ALERT, "Found existing file %s with incorrect hash!", path);
+
+  unlink(path);
+
+  PDL_JSReply(params, REPLY_NOFILE);
+
+  return PDL_TRUE;
 }
 
 PDL_bool plugin_fetchFile(PDL_JSParameters *params) {
@@ -480,6 +506,7 @@ int main(int argc, char *argv[]) {
 	PDL_RegisterJSHandler("authorize", plugin_authorize);
 	PDL_RegisterJSHandler("getLibrary", plugin_getLibrary);
 	PDL_RegisterJSHandler("statfile", plugin_statfile);
+  PDL_RegisterJSHandler("checkFile", plugin_checkFile);
 	PDL_RegisterJSHandler("mkdirs", plugin_mkdirs);
 	PDL_RegisterJSHandler("fetchFile", plugin_fetchFile);
 	PDL_RegisterJSHandler("getGroups", plugin_getGroups);
