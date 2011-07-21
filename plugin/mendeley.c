@@ -268,7 +268,7 @@ json_t * getLibraryPage(int page) {
   	
 }
 
-int sha1File(char *filename) {
+char *sha1File(char *filename) {
 
 	FILE *infile;
 	unsigned char sha[20];
@@ -298,17 +298,37 @@ int sha1File(char *filename) {
 		
 	free(buffer);
 	
-	return hash;
+	return strdup(hash);
 }
 
 void fetchFile(file_t *file) {
 	
-	FILE *outfile;
-	char *req_url, *url;
+  FILE *testfile = NULL;
+	FILE *outfile = NULL;
+	char *req_url = NULL, *url = NULL;
 	struct MemoryStruct header;
 	struct MemoryStruct response;
-	
-  	asprintf(&url, "http://api.mendeley.com/oapi/library/documents/%s/file/%s", file->id, file->hash);
+
+  // TODO: Should this update some state in the application in terms
+  //       of wether or not the file exists on disk?
+
+  // Check hash on file, if it exists
+  char * hash = sha1File(file->path);
+  if (hash) {
+    char match = !strcmp(hash,file->hash);
+    free(hash);
+    if (match)
+      // Match! No need to fetch anything...
+      goto cleanup;
+
+    syslog(LOG_ALERT, "Found existing file %s with incorrect hash %s! Re-downloading...\n", file->path, hash);
+
+    // If we found the file, but has the wrong hash..remove it!
+    // (Probably not strictly necessary, but seems cleaner...)
+    unlink(file->path);
+  }
+
+  asprintf(&url, "http://api.mendeley.com/oapi/library/documents/%s/file/%s", file->id, file->hash);
 	
 	header.size = 0;
 	header.data = NULL;
@@ -318,7 +338,7 @@ void fetchFile(file_t *file) {
 	req_url = oauth_sign_url2(url, NULL, OA_HMAC, NULL, oauth->req_c_key,
 		oauth->req_c_secret, oauth->res_t_key, oauth->res_t_secret);
 	if (oauth_http_get3(req_url, NULL, &response, &header)>0)
-		goto fail;
+		goto cleanup;
 
 	outfile = fopen(file->path, "w");
 	fwrite(response.data, 1, response.size, outfile);
@@ -327,7 +347,7 @@ void fetchFile(file_t *file) {
 	free(response.data);
 	free(header.data);
 	
-	fail:
+  cleanup:
 	free(url);
 	free(file->id);
 	free(file->hash);
