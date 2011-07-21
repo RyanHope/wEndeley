@@ -9,7 +9,7 @@ CFLAGS		:=	-pthread $(MARCH_TUNE) -I. -I$(ROOT)${PREFIX}/include
 								
 LIBDIRS		:=	-L$(PDLLIB) -L$(ROOT)${PREFIX}/lib
 
-LIBS		:=	-lpdl -lm -lcrypto -lssl -lcurl -lmjson
+LIBS		:=	-lpdl -lm -lcrypto -lssl -lcurl -lmjson -lz
 
 .PHONY		:	clean clobber
 
