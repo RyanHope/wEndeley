@@ -548,7 +548,8 @@ enyo.kind({
 		if (this.myLibrary && this.myLibrary.length)
 			libLen = this.myLibrary.length
 		this.$.mainList.data = {
-			allDocuments: {label: 'All Documents', icon: 'all-documents', count: libLen}
+			allDocuments: {label: 'All Documents', icon: 'all-documents', count: libLen},
+			createFolder: {label: 'Create Folder...'}
 		}
 		this.$.mainList.updateControls()
 		var groups = this.$.plugin.getGroups().response
