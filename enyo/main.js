@@ -420,6 +420,7 @@ enyo.kind({
 		this.$.init.show()
 		this.myLibrary = []
 		this.myLibKeys = {}
+		this.updateLibView(false)
 		this.$.plugin.getLibrary()
 	},
 	
@@ -495,7 +496,7 @@ enyo.kind({
 		} else {
 			this.$.init.hide()
 			this.showLibrary()
-			this.updateLibView()
+			this.updateLibView(true)
 		}
 	},	
 	
@@ -541,8 +542,8 @@ enyo.kind({
 		this.warn(data)
 	},
 
-	updateLibView: function() {
-		this.$.views.setShowing(true)
+	updateLibView: function(showView) {
+		this.$.views.setShowing(showView)
 		var libLen = 0
 		if (this.myLibrary && this.myLibrary.length)
 			libLen = this.myLibrary.length
@@ -607,21 +608,16 @@ enyo.kind({
 	pushDocument: function(inSender, data) {
     	var data = enyo.json.parse(data)
     	if (data.files && data.files.length>0) {
-      		if (data.files.length>1) {
-        		for (var i in data.files) {
-          			var path = data['_localFile'] = this.filenameForReference(data, i+1)
-          			// Fetch the file if it doesn't exist or hash fails.
-          			var checkResponse = this.$.plugin.checkFile(data.id, data.files[i].file_hash, path)
-          			if (checkResponse.retVal == 0)
-            			this.$.plugin.fetchFile(data.id, data.files[i].file_hash, path)
-				}	
-  			} else {
-  				var path = data['_localFile'] = this.filenameForReference(data, 0)
-      			// Fetch the file if it doesn't exist or hash fails.
-      			var checkResponse = this.$.plugin.checkFile(data.id, data.files[i].file_hash, path)
-      			if (checkResponse.retVal == 0)
+    		for (var i in data.files) {
+    			var path = ''
+    			if (data.files.length==1)
+    				path = data['_localFile'] = this.filenameForReference(data, 0)
+    			else
+    				path = data['_localFile'] = this.filenameForReference(data, i+1)
+				var checkResponse = this.$.plugin.checkFile(data.id, data.files[i].file_hash, path)
+				if (checkResponse.retVal == 0)
         			this.$.plugin.fetchFile(data.id, data.files[i].file_hash, path)
-  			}
+    		}
     	}
 		this.myLibrary.push(data)
 		var info = 'Fetching Document ' + this.myLibrary.length + ' of ' + this.libraryTotalResults
@@ -635,7 +631,7 @@ enyo.kind({
 			this.$.viewLibrary.data = this.myLibrary
 			this.$.init.hide()
 			this.showLibrary()
-			this.updateLibView()
+			this.updateLibView(true)
 		}
 	},
 	deleteItem: function(inSender, inIndex) {
