@@ -13,6 +13,15 @@ enyo.kind({
   	rightPaneLastViewed: 'detailsView',
 
 	components: [
+		{   kind: "DbService", dbKind: "us.ryanhope.mendeley:1", onFailure: "dbFailure",
+			components: [
+				{   name: "createKind", method: "putKind", onSuccess: "dbPutKindSuccess" },
+				{	name: "removeKind", method: "delKind", onSuccess: "dbDelKindSuccess" },
+				{   name: "getDbDocs",   method: "find",    onSuccess: "dbGetSuccess" },
+				{   name: "putDbDocs",   method: "put",     onSuccess: "dbPutSuccess" },
+				{   name: "delDbDocs",   method: "del",     onSuccess: "dbDelSuccess" }
+			] 
+		},
 		{ name: 'appManager', kind: 'PalmService',
 	      service: 'palm://com.palm.applicationManager', method: 'open'},
 		{
@@ -621,6 +630,8 @@ enyo.kind({
     		}
     	}
 		this.myLibrary.push(data)
+		this.log(this.formatDoc(data))
+		this.$.putDbDocs.call({objects: [this.formatDoc(data)] })
 		var info = 'Fetching Document ' + this.myLibrary.length + ' of ' + this.libraryTotalResults
 		this.$.initText.setContent(info)
 		if (this.myLibrary.length==this.libraryTotalResults) {
@@ -642,5 +653,48 @@ enyo.kind({
    		this.myLibrary.splice(inIndex,1)
    		this.updateLibView()
 	},
+	
+	dbPutKindSuccess: function(inSender, inResponse, inRequest) {
+		this.log("DB KIND CREATED - SUCCESS")
+		this.log(inSender)
+		this.log(inResponse)
+		this.$.getDbDocs.call()
+	},
+	dbDelKindSuccess: function(inSender, inResponse, inRequest) {
+		this.log("DB KIND DELETED - SUCCESS")
+		this.log(inSender)
+		this.log(inResponse)
+	},
+	dbFailure: function(inSender, inResponse, inRequest) {
+		this.log("DB ERROR - FAILURE")
+		this.log(inSender)
+		this.log(inResponse)
+	},
+	dbGetSuccess: function(inSender, inResponse, inRequest) {
+		this.log("DB GET - SUCCESS")
+		this.log(inSender)
+		this.log(inResponse)
+		for (var i in inResponse.results) {
+			this.warn(inResponse.results[i])
+		}
+		this.error(inResponse.results.length)
+	},
+	dbPutSuccess: function(inSender, inResponse, inRequest) {
+		this.log("DB PUT - SUCCESS")
+		this.log(inSender)
+		this.log(inResponse)
+	},
+	dbDelSuccess: function(inSender, inResponse, inRequest) {
+		this.log("DB DEL - SUCCESS")
+		this.log(inSender)
+		this.log(inResponse)
+	},
+	create: function() {
+		this.inherited(arguments)
+		this.$.createKind.call({owner:"us.ryanhope.mendeley"})
+	},
+	formatDoc: function(d) {
+		return { _kind: this.$.dbService.dbKind, name: d }
+	}
 
 })

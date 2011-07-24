@@ -9,8 +9,10 @@ ifdef DEVICE
 	PREFIX=/usr
 else
 	ifeq ($(shell uname -s),Darwin)
-		export CC=/opt/PalmPDK/i686-gcc/bin/i686-nptl-linux-gnu-gcc --sysroot=/opt/PalmPDK/i686-gcc/sys-root
+		CC=/opt/PalmPDK/i686-gcc/bin/i686-nptl-linux-gnu-gcc --sysroot=/opt/PalmPDK/i686-gcc/sys-root
 	else
 		CC=/srv/preware/build/toolchain/i686-unknown-linux-gnu/build/i686-unknown-linux-gnu/bin/i686-unknown-linux-gnu-gcc
 	endif
+	ROOT=/srv/preware/build/staging/i686
+	PREFIX=/usr
 endif
