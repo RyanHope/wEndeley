@@ -13,13 +13,14 @@ enyo.kind({
   	rightPaneLastViewed: 'detailsView',
 
 	components: [
-		{   kind: "DbService", dbKind: "us.ryanhope.mendeley:1", onFailure: "dbFailure",
+		{   kind: "DbService", dbKind: "us.ryanhope.mendeley.item:1", onFailure: "dbFailure",
 			components: [
-				{   name: "createKind", method: "putKind", onSuccess: "dbPutKindSuccess" },
-				{	name: "removeKind", method: "delKind", onSuccess: "dbDelKindSuccess" },
-				{   name: "getDbDocs",   method: "find",    onSuccess: "dbGetSuccess" },
-				{   name: "putDbDocs",   method: "put",     onSuccess: "dbPutSuccess" },
-				{   name: "delDbDocs",   method: "del",     onSuccess: "dbDelSuccess" }
+				{   name: "createKind",		method: "putKind",	onSuccess: "dbPutKindSuccess" },
+				{	name: "removeKind",		method: "delKind", 	onSuccess: "dbDelKindSuccess" },
+				{   name: "getDbDocs",  	method: "find",    	onSuccess: "dbGetSuccess" },
+				{   name: "mergeDbDocs",  	method: "merge",	onSuccess: "dbMergeSuccess", onFailure: "dbMergeFailure" },
+				{   name: "delDbDocs",  	method: "del",     	onSuccess: "dbDelSuccess" },
+				{   name: "delALL",   		method: "find",    	onSuccess: "dbDelAllSuccess" },
 			] 
 		},
 		{ name: 'appManager', kind: 'PalmService',
@@ -99,9 +100,10 @@ enyo.kind({
 			components: [
 				{caption: "Preferences", onclick: "preferences"},
 		  		{caption: "Account", onclick: "account"},
+		  		{caption: "Clear Database", onclick: "cleardb"}
 			]
 		},
-		{kind: "SlidingPane", name: 'views', flex: 1, showing: false, components: [
+		{kind: "SlidingPane", name: 'views', flex: 1, showing: true, components: [
 			{name: "left", width: "27%", fixedWidth: true, components: [
 				{
 					kind: 'Toolbar',
@@ -134,11 +136,12 @@ enyo.kind({
 			]},
 	  		{name: "middle", flex: 2, components: [
 	  			{
-					kind: 'List2',
+					kind: 'DbList',
 					name: 'viewLibrary',
 					data: [],
 					flex:1,
 					height: '100%',
+					onQuery: "listQuery",
 					onSetupRow: 'setupRow',
 					components: [
 						{name: "divider", captureState: false, kind: "Divider", showing: false, caption: "Sometime"},
@@ -211,6 +214,14 @@ enyo.kind({
 	  		]}
 		]}
 	],
+	
+	listQuery: function(inSender, inQuery) {
+		return this.$.getDbDocs.call({query: inQuery})
+	},
+	
+	queryFail: function(inSender, inResponse) {
+		this.error('query fail')
+	},
 	
 	favClick: function(inSender, inEvent) {
 		if (this.myLibrary[inSender.rowIndex]._isFavorite)
@@ -319,7 +330,7 @@ enyo.kind({
 	
 	setupRow: function(inSender, info, inIndex) {
 
-		this.getDivider(info, inIndex)
+		//this.getDivider(info, inIndex)
 		
 		this.$.paper.rowIndex = inIndex
 
@@ -446,6 +457,10 @@ enyo.kind({
 	account: function() {
     	this.$.client.account()
 	},
+	
+	cleardb: function() {
+		this.$.delALL.call()
+	},
 
 	login: function(insender, e) {
 		var windowObjectReference = window.open(this.$.newAccount.url, 'authorise')
@@ -496,7 +511,8 @@ enyo.kind({
 	},
 	
 	accountReady: function() {
-		if (this.prefs.get('firstLaunch')) {
+		this.$.init.hide()
+		/*if (this.prefs.get('firstLaunch')) {
 			this.warn('First Launch')
 			this.prefs.set('firstLaunch', false)
 			this.refreshView()
@@ -506,7 +522,7 @@ enyo.kind({
 			this.$.init.hide()
 			this.showLibrary()
 			this.updateLibView(true)
-		}
+		}*/
 	},	
 	
 	pluginReady: function(inSender) {
@@ -552,7 +568,7 @@ enyo.kind({
 	},
 
 	updateLibView: function(showView) {
-		this.$.views.setShowing(showView)
+		/*this.$.views.setShowing(showView)
 		var libLen = 0
 		if (this.myLibrary && this.myLibrary.length)
 			libLen = this.myLibrary.length
@@ -568,7 +584,7 @@ enyo.kind({
 			this.warn(groups[i])
 		}
 		this.$.groups.data['create-group'] = {label: 'Create Group...'}
-		this.$.groups.updateControls()
+		this.$.groups.updateControls()*/
 	},
 	
   filenameForReference : function(data, index) {
@@ -630,8 +646,16 @@ enyo.kind({
     		}
     	}
 		this.myLibrary.push(data)
-		this.log(this.formatDoc(data))
-		this.$.putDbDocs.call({objects: [this.formatDoc(data)] })
+		this.$.mergeDbDocs.call({
+			props: data,
+			query: {
+				"from": "us.ryanhope.mendeley.item:1",
+				"where": [
+					{"prop":"@type","op":"=","val":"libraryDoc"},
+					{"prop":"id","op":"=","val":data.id},
+				]
+			}
+		})
 		var info = 'Fetching Document ' + this.myLibrary.length + ' of ' + this.libraryTotalResults
 		this.$.initText.setContent(info)
 		if (this.myLibrary.length==this.libraryTotalResults) {
@@ -658,7 +682,7 @@ enyo.kind({
 		this.log("DB KIND CREATED - SUCCESS")
 		this.log(inSender)
 		this.log(inResponse)
-		this.$.getDbDocs.call()
+		//this.$.getDbDocs.call()
 	},
 	dbDelKindSuccess: function(inSender, inResponse, inRequest) {
 		this.log("DB KIND DELETED - SUCCESS")
@@ -674,13 +698,20 @@ enyo.kind({
 		this.log("DB GET - SUCCESS")
 		this.log(inSender)
 		this.log(inResponse)
-		for (var i in inResponse.results) {
-			this.warn(inResponse.results[i])
-		}
-		this.error(inResponse.results.length)
+		this.$.viewLibrary.queryResponse(inResponse, inRequest)
+		//this.error(inResponse.results.length)
 	},
-	dbPutSuccess: function(inSender, inResponse, inRequest) {
-		this.log("DB PUT - SUCCESS")
+	dbMergeSuccess: function(inSender, inResponse, inRequest) {
+		this.log("DB MERGE - SUCCESS")
+		if (inResponse.count==0) {
+			this.log(inRequest.params.props)
+			this.$.mergeDbDocs.call({'objects': [this.formatKind('libraryDoc', inRequest.params.props)]})
+		} else {
+			this.log(inResponse)
+		}
+	},
+	dbMergeFailure: function(inSender, inResponse, inRequest) {
+		this.log("DB MERGE - FAIL")
 		this.log(inSender)
 		this.log(inResponse)
 	},
@@ -689,12 +720,32 @@ enyo.kind({
 		this.log(inSender)
 		this.log(inResponse)
 	},
+	dbDelAllSuccess: function(inSender, inResponse, inRequest) {
+		for (var i in inResponse.results) {
+			this.error(inResponse.results[i]._id)
+			this.$.delDbDocs.call({ids: [inResponse.results[i]._id], purge: true})
+		}
+	},	
 	create: function() {
+		/*
+		 * Types:
+		 *   libraryDoc - A document in the main library
+		 *   folderDoc  - A document in a library folder
+		 *   groupDoc   - A document in a library group
+		 *   folder     - A folder
+		 *   group      - A group
+		 */
 		this.inherited(arguments)
-		this.$.createKind.call({owner:"us.ryanhope.mendeley"})
+		this.$.createKind.call({
+			owner: "us.ryanhope.mendeley",
+			id: "us.ryanhope.mendeley.item:1",
+			indexes: [{"name": "main", props: [{"name":"@type"},{"name":"id"}]}]
+		})
 	},
-	formatDoc: function(d) {
-		return { _kind: this.$.dbService.dbKind, name: d }
+	formatKind: function(type, data) {
+		data['_kind'] = this.$.dbService.dbKind
+		data['@type'] = type
+		return data
 	}
 
 })
