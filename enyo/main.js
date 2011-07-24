@@ -138,8 +138,8 @@ enyo.kind({
 	  			{
 					kind: 'DbList',
 					name: 'viewLibrary',
-					data: [],
 					flex:1,
+					desc: true,
 					height: '100%',
 					onQuery: "listQuery",
 					onSetupRow: 'setupRow',
@@ -216,6 +216,8 @@ enyo.kind({
 	],
 	
 	listQuery: function(inSender, inQuery) {
+		inQuery.orderBy = "year"
+		this.warn(inQuery)
 		return this.$.getDbDocs.call({query: inQuery})
 	},
 	
@@ -308,14 +310,14 @@ enyo.kind({
 	},
 	
 	getDivider: function(inMessage, inIndex) {
-		var prevYear = this.$.viewLibrary.fetch(inIndex - 1).year
-		var nextYear = this.$.viewLibrary.fetch(inIndex + 1).year
+		var prev = this.$.viewLibrary.fetch(inIndex - 1)
+		var next = this.$.viewLibrary.fetch(inIndex + 1)
 		if (inIndex==0 && !inMessage.year) {
 			this.$.divider.setShowing(true)
         	this.$.divider.setCaption('????')
         	this.$.divider.canGenerate = true
             this.$.paper.domStyles["border-top"] = "none"
-		} else if (prevYear != inMessage.year) {
+		} else if (!prev || prev.year != inMessage.year) {
 			this.$.divider.setShowing(true)
         	this.$.divider.setCaption(inMessage.year)
         	this.$.divider.canGenerate = true
@@ -323,14 +325,14 @@ enyo.kind({
     	} else {
     		this.$.divider.canGenerate = false
     	}
-    	if (nextYear != inMessage.year) {
+    	if (!next || next.year != inMessage.year) {
     		this.$.paper.domStyles["border-bottom"] = "none"
     	}
 	},
 	
 	setupRow: function(inSender, info, inIndex) {
 
-		//this.getDivider(info, inIndex)
+		this.getDivider(info, inIndex)
 		
 		this.$.paper.rowIndex = inIndex
 
@@ -344,6 +346,10 @@ enyo.kind({
 		}
 		if (info.publication_outlet)
 			this.$.paper.$.pubOutlet.setContent(info.publication_outlet)
+		if (info.year) {
+			this.$.paper.$.year.setContent(info.year)
+			this.$.paper.$.year.addClass('smallLeftPad')
+		}
 		if (info.volume) {
 			this.$.paper.$.volume.setContent(info.volume)
 			this.$.paper.$.volume.addClass('smallLeftPad')
@@ -739,7 +745,7 @@ enyo.kind({
 		this.$.createKind.call({
 			owner: "us.ryanhope.mendeley",
 			id: "us.ryanhope.mendeley.item:1",
-			indexes: [{"name": "main", props: [{"name":"@type"},{"name":"id"}]}]
+			indexes: [{"name": "byYear", props: [{"name":"year"},{"name":"@type"},{"name":"id"}]}]
 		})
 	},
 	formatKind: function(type, data) {

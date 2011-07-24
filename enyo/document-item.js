@@ -21,6 +21,7 @@ enyo.kind({
 			{name: 'authors', style: 'font-size: 80%;'},
 			{kind: 'HFlexBox', components: [
 				{name: 'pubOutlet', style: 'font-size: 80%; font-style: italic;'},
+				{name: 'year', style: 'font-size: 80%'},
 				{name: 'volume', style: 'font-size: 80%'},
 				{name: 'issue', style: 'font-size: 80%'},
 				{name: 'pages', style: 'font-size: 80%'},
