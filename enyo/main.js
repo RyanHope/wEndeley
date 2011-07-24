@@ -156,18 +156,12 @@ enyo.kind({
 						{
 							kind: 'GrabButton'
 						},
-						/*{kind: "Spacer"},
-						{kind: "ListSelector", value: 2, onChange: "itemChanged", disabled: true, items: [
-							{caption: "Filter by Author's Keyworks", value: 1},
-					        {caption: "Filter by Authors", value: 2},
-					        {caption: "Filter by My Tags", value: 3},
-					        {caption: "Filter by Publications", value: 4},
+						{kind: "Spacer"},
+						{kind: "ListSelector", name: 'sorter', value: 1, onChange: "itemChanged", items: [
+							{caption: "Sort by Year Descending", value: 1},
+					        {caption: "Sort by Year Ascending", value: 2}
 					    ]},
-					    {kind: "Spacer"},
-					    {kind: "ListSelector", value: 1, disabled: true, onChange: "itemChanged", items: [
-							{caption: "All", value: 1},
-					    ]},
-					    {kind: "Spacer"}*/
+					    {kind: "Spacer"}
 					]
 				}
 	  		]},
@@ -232,6 +226,15 @@ enyo.kind({
 			this.myLibrary[inSender.rowIndex]._isFavorite = true
 		this.$.viewLibrary.data = this.myLibrary
 		this.$.viewLibrary.refresh()
+	},
+	
+	itemChanged: function(inSender, inValue) {
+		if (inValue==1)
+			this.$.viewLibrary.setDesc(true)
+		else if (inValue==2)
+			this.$.viewLibrary.setDesc(false)
+		this.$.viewLibrary.reset()
+		this.$.viewLibrary.punt()
 	},
 	
 	readClick: function(inSender, inEvent) {
@@ -346,10 +349,10 @@ enyo.kind({
 		}
 		if (info.publication_outlet)
 			this.$.paper.$.pubOutlet.setContent(info.publication_outlet)
-		if (info.year) {
-			this.$.paper.$.year.setContent(info.year)
+		/*if (info.year) {
+			this.$.paper.$.year.setContent('('+info.year+')')
 			this.$.paper.$.year.addClass('smallLeftPad')
-		}
+		}*/
 		if (info.volume) {
 			this.$.paper.$.volume.setContent(info.volume)
 			this.$.paper.$.volume.addClass('smallLeftPad')
@@ -709,17 +712,14 @@ enyo.kind({
 	},
 	dbMergeSuccess: function(inSender, inResponse, inRequest) {
 		this.log("DB MERGE - SUCCESS")
-		if (inResponse.count==0) {
-			this.log(inRequest.params.props)
-			this.$.mergeDbDocs.call({'objects': [this.formatKind('libraryDoc', inRequest.params.props)]})
-		} else {
-			this.log(inResponse)
-		}
+		this.log(inResponse)
 	},
 	dbMergeFailure: function(inSender, inResponse, inRequest) {
 		this.log("DB MERGE - FAIL")
 		this.log(inSender)
 		this.log(inResponse)
+		this.log(inRequest.params.props)
+		this.$.mergeDbDocs.call({'objects': [this.formatKind('libraryDoc', inRequest.params.props)]})
 	},
 	dbDelSuccess: function(inSender, inResponse, inRequest) {
 		this.log("DB DEL - SUCCESS")
