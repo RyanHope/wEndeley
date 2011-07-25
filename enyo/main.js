@@ -590,49 +590,40 @@ enyo.kind({
 		this.$.groups.updateControls()*/
 	},
 	
-  filenameForReference : function(data, index) {
-    // Get filename for this reference.
-    // Extract metadata from file and use it to construct a filename.
+  	filenameForReference : function(data, index) {
 
-    var title = "[untitled]";
-    if (data.title) {
-      // Convert spaces to underscores
-      title = data.title.replace(/ /g,'_')
+		var title = "[untitled]";
+		if (data.title) {
+	  		title = data.title.replace(/ /g,'_')
+			if (title[title.length-1]=='.')
+	    		title = title.substring(0, title.length-1)
+		}
 
-      // If last character is a period, remove it.
-      if (title[title.length-1]=='.')
-        title = title.substring(0, title.length-1)
-    }
+		var auth = ""
+		if (data.authors && (data.authors.length > 0) && data.authors[0].surname) {
+		  	var surname = data.authors[0].surname
+		  	auth = surname
+		}
 
-    // Only use the last character of the author's last name... (???)
-    var auth = ""
-    if (data.authors && (data.authors.length > 0) && data.authors[0].surname) {
-      var surname = data.authors[0].surname
-      auth = surname[surname.length-1]
-    }
+		var year = ""
+		if (data.year)
+		  	year = data.year
+  
+		var path = ''
+		if (index)
+			path = auth + year + '-' + index + '__' + title
+		else
+			path = auth + year + '__' + title
 
-    var year = ""
-    if (data.year)
-      year = data.year
-      
-    var path = ''
-    if (index)
-		path = auth + year + '-' + index + '__' + title
-	else
-		path = auth + year + '__' + title
+		if (path.length>250)
+		  path = path.substring(0,250)
 
-    // Enforce a limit on very long filenames/titles/etc
-    if (path.length>250)
-      path = path.substring(0,250)
+		path = path.replace(/\W/g, "")
 
-    // Remove any non alphanumeric (or underscore) characters
-    path = path.replace(/\W/g, "")
+		path = this.prefs.get('libraryPath') + '/' + path + '.pdf'
 
-    // Build the full filename
-    path = this.prefs.get('libraryPath') + '/' + path + '.pdf'
-
-    return path;
-  },
+    	return path
+  	},
 
 	pushDocument: function(inSender, data) {
     	var data = enyo.json.parse(data)
