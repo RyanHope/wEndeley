@@ -272,12 +272,13 @@ enyo.kind({
 	},
 	
 	handleDocMenuTap: function(inSender, command) {
-		if (this.$.viewLibrary.data[inSender.rowIndex]._localFile) {
+		var doc = this.$.viewLibrary.fetch(inSender.rowIndex)
+		if (doc && doc._localFile) {
 			if (command == 'openFile') {
 				this.$.appManager.call( {                                    
 		                'id': "com.quickoffice.ar",    
 		                params: {                             
-		                    target: this.$.viewLibrary.data[inSender.rowIndex]._localFile
+		                    target: doc._localFile
 		                }                                               
 		            }                                             
 		        )
@@ -288,14 +289,14 @@ enyo.kind({
 		                	summary: 'Here is a great paper!',
 		                	text: 'I think you should read this paper. See attached.',
 		                	attachments: [{
-		                		fullPath: this.$.viewLibrary.data[inSender.rowIndex]._localFile,
+		                		fullPath: doc._localFile,
 		                		mimeType: 'application/pdf'
 		                	}]
 		                }                                               
 		            }                                             
 		        )
 	        }
-        } 
+        }
 	},
 	
 	docMenuClosed: function(inSender, inEvent) {
