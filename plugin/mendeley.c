@@ -506,7 +506,7 @@ int main(int argc, char *argv[]) {
 	PDL_RegisterJSHandler("authorize", plugin_authorize);
 	PDL_RegisterJSHandler("getLibrary", plugin_getLibrary);
 	PDL_RegisterJSHandler("statfile", plugin_statfile);
-  PDL_RegisterJSHandler("checkFile", plugin_checkFile);
+  	PDL_RegisterJSHandler("checkFile", plugin_checkFile);
 	PDL_RegisterJSHandler("mkdirs", plugin_mkdirs);
 	PDL_RegisterJSHandler("fetchFile", plugin_fetchFile);
 	PDL_RegisterJSHandler("getGroups", plugin_getGroups);

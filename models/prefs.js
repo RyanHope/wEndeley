@@ -5,7 +5,8 @@ function Prefs() {
 		libraryPath: '/media/internal/Mendeley',
 		syncOnLaunch: false,
 		tokens: ['',''],
-		firstLaunch: true
+		firstLaunch: true,
+		sort: 1,
 		
 	}
 	

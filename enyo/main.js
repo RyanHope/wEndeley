@@ -159,7 +159,9 @@ enyo.kind({
 						{kind: "Spacer"},
 						{kind: "ListSelector", name: 'sorter', value: 1, onChange: "itemChanged", items: [
 							{caption: "Sort by Year Descending", value: 1},
-					        {caption: "Sort by Year Ascending", value: 2}
+					        {caption: "Sort by Year Ascending", value: 2},
+					        {caption: "Sort by Publication Outlet Descending", value: 3},
+					        {caption: "Sort by Publication Outlet Ascending", value: 4}
 					    ]},
 					    {kind: "Spacer"}
 					]
@@ -210,7 +212,11 @@ enyo.kind({
 	],
 	
 	listQuery: function(inSender, inQuery) {
-		inQuery.orderBy = "year"
+		var sort = this.prefs.get('sort')
+		if (sort == 1 || sort == 2)
+			inQuery.orderBy = "year"
+		else if (sort == 3 || sort == 4)
+			inQuery.orderBy = "publication_outlet"
 		this.warn(inQuery)
 		return this.$.getDbDocs.call({query: inQuery})
 	},
@@ -229,10 +235,11 @@ enyo.kind({
 	},
 	
 	itemChanged: function(inSender, inValue) {
-		if (inValue==1)
+		if (inValue==1 || inValue==3)
 			this.$.viewLibrary.setDesc(true)
-		else if (inValue==2)
+		else if (inValue==2 || inValue==4)
 			this.$.viewLibrary.setDesc(false)
+		this.prefs.set('sort', inValue)
 		this.$.viewLibrary.reset()
 		this.$.viewLibrary.punt()
 	},
@@ -312,7 +319,7 @@ enyo.kind({
 			this.showDetails(inSender.rowIndex)
 	},
 	
-	getDivider: function(inMessage, inIndex) {
+	getYearDivider: function(inMessage, inIndex) {
 		var prev = this.$.viewLibrary.fetch(inIndex - 1)
 		var next = this.$.viewLibrary.fetch(inIndex + 1)
 		if (inIndex==0 && !inMessage.year) {
@@ -333,9 +340,34 @@ enyo.kind({
     	}
 	},
 	
+	getPubDivider: function(inMessage, inIndex) {
+		var prev = this.$.viewLibrary.fetch(inIndex - 1)
+		var next = this.$.viewLibrary.fetch(inIndex + 1)
+		if (inIndex==0 && !inMessage.publication_outlet) {
+			this.$.divider.setShowing(true)
+        	this.$.divider.setCaption('????')
+        	this.$.divider.canGenerate = true
+            this.$.paper.domStyles["border-top"] = "none"
+		} else if (!prev || prev.publication_outlet != inMessage.publication_outlet) {
+			this.$.divider.setShowing(true)
+        	this.$.divider.setCaption(inMessage.publication_outlet)
+        	this.$.divider.canGenerate = true
+            this.$.paper.domStyles["border-top"] = "none"
+    	} else {
+    		this.$.divider.canGenerate = false
+    	}
+    	if (!next || next.publication_outlet != inMessage.publication_outlet) {
+    		this.$.paper.domStyles["border-bottom"] = "none"
+    	}
+	},
+	
 	setupRow: function(inSender, info, inIndex) {
-
-		this.getDivider(info, inIndex)
+		
+		var sort = this.prefs.get('sort')
+		if (sort == 1 || sort == 2)
+			this.getYearDivider(info, inIndex)
+		else if (sort == 3 || sort == 4)
+			this.getPubDivider(info, inIndex)
 		
 		this.$.paper.rowIndex = inIndex
 
@@ -401,38 +433,6 @@ enyo.kind({
   		this.$.rightMain.selectViewByName(this.rightPaneLastViewed)
 	},
 	
-	sortByAuthor: function(a ,b) {
-		if (!a.authors && !b.authors)
-			return 0
-		else if (!a.authors && b.authors)
-			return 1
-		else if (a.authors && !b.authors)
-			return -1
-		else (a.authors && b.authors)
-			if (a.authors > b.authors)
-				return 1
-			else if (a.authors < b.authors)
-				return -1
-			else
-				return 0
-	},
-	
-	sortByYear: function(a, b) {
-		if (!a.year && !b.year)
-			return this.sortByAuthor(a, b)
-		else if (!a.year && b.year)
-			return -1
-		else if (a.year && !b.year)
-			return 1
-		else (a.year && b.year)
-			if (a.year > b.year)
-				return -1
-			else if (a.year < b.year)
-				return 1
-			else
-				return this.sortByAuthor(a, b)
-	},
-
 	getDocumentDetails: function(id) {
 		this.$.plugin.getDocument(enyo.bind(this, 'details'), id)
 	},
@@ -444,12 +444,12 @@ enyo.kind({
 	},
 
 	refreshView: function(inSender, inEvent) {
-		this.$.initText.setContent('Fetching Document Details...')
-		this.$.views.setShowing(false)
-		this.$.init.show()
+		//this.$.initText.setContent('Fetching Document Details...')
+		//this.$.views.setShowing(false)
+		//this.$.init.show()
 		this.myLibrary = []
 		this.myLibKeys = {}
-		this.updateLibView(false)
+		//this.updateLibView(false)
 		this.$.plugin.getLibrary()
 	},
 	
@@ -654,7 +654,7 @@ enyo.kind({
         			this.$.plugin.fetchFile(data.id, data.files[i].file_hash, path)
     		}
     	}
-		this.myLibrary.push(data)
+		//this.myLibrary.push(data)
 		this.$.mergeDbDocs.call({
 			props: data,
 			query: {
@@ -665,9 +665,9 @@ enyo.kind({
 				]
 			}
 		})
-		var info = 'Fetching Document ' + this.myLibrary.length + ' of ' + this.libraryTotalResults
-		this.$.initText.setContent(info)
-		if (this.myLibrary.length==this.libraryTotalResults) {
+		//var info = 'Fetching Document ' + this.myLibrary.length + ' of ' + this.libraryTotalResults
+		//this.$.initText.setContent(info)
+		/*if (this.myLibrary.length==this.libraryTotalResults) {
 			this.myLibrary.sort(enyo.bind(this, 'sortByYear'))
 			for (i in this.myLibrary)
 				this.myLibKeys[this.myLibrary.id] = i
@@ -677,7 +677,7 @@ enyo.kind({
 			this.$.init.hide()
 			this.showLibrary()
 			this.updateLibView(true)
-		}
+		}*/
 	},
 	deleteItem: function(inSender, inIndex) {
     	var response = this.$.plugin.deleteDocument(this.myLibrary[inIndex].id)
@@ -688,43 +688,47 @@ enyo.kind({
 	},
 	
 	dbPutKindSuccess: function(inSender, inResponse, inRequest) {
-		this.log("DB KIND CREATED - SUCCESS")
-		this.log(inSender)
-		this.log(inResponse)
+		//this.log("DB KIND CREATED - SUCCESS")
+		//this.log(inSender)
+		//this.log(inResponse)
 		//this.$.getDbDocs.call()
 	},
 	dbDelKindSuccess: function(inSender, inResponse, inRequest) {
-		this.log("DB KIND DELETED - SUCCESS")
-		this.log(inSender)
-		this.log(inResponse)
+		//this.log("DB KIND DELETED - SUCCESS")
+		//this.log(inSender)
+		//this.log(inResponse)
 	},
 	dbFailure: function(inSender, inResponse, inRequest) {
-		this.log("DB ERROR - FAILURE")
-		this.log(inSender)
-		this.log(inResponse)
+		//this.log("DB ERROR - FAILURE")
+		//this.log(inSender)
+		//this.log(inResponse)
 	},
 	dbGetSuccess: function(inSender, inResponse, inRequest) {
-		this.log("DB GET - SUCCESS")
-		this.log(inSender)
-		this.log(inResponse)
+		//this.log("DB GET - SUCCESS")
+		//this.log(inSender)
+		//this.log(inResponse)
 		this.$.viewLibrary.queryResponse(inResponse, inRequest)
 		//this.error(inResponse.results.length)
 	},
 	dbMergeSuccess: function(inSender, inResponse, inRequest) {
-		this.log("DB MERGE - SUCCESS")
-		this.log(inResponse)
+		//this.log("DB MERGE - SUCCESS")
+		//this.log(inResponse)
+		if (inResponse.count==0)
+			this.$.mergeDbDocs.call({'objects': [this.formatKind('libraryDoc', inRequest.params.props)]})
+		else
+			this.$.viewLibrary.reset()
 	},
 	dbMergeFailure: function(inSender, inResponse, inRequest) {
-		this.log("DB MERGE - FAIL")
-		this.log(inSender)
-		this.log(inResponse)
-		this.log(inRequest.params.props)
-		this.$.mergeDbDocs.call({'objects': [this.formatKind('libraryDoc', inRequest.params.props)]})
+		//this.warn("DB MERGE - FAIL")
+		//this.log(inSender)
+		//this.log(inResponse)
+		//this.log(inRequest.params.props)
+		//this.$.mergeDbDocs.call({'objects': [this.formatKind('libraryDoc', inRequest.params.props)]})
 	},
 	dbDelSuccess: function(inSender, inResponse, inRequest) {
-		this.log("DB DEL - SUCCESS")
-		this.log(inSender)
-		this.log(inResponse)
+		//this.log("DB DEL - SUCCESS")
+		//this.log(inSender)
+		//this.log(inResponse)
 	},
 	dbDelAllSuccess: function(inSender, inResponse, inRequest) {
 		for (var i in inResponse.results) {
@@ -745,8 +749,18 @@ enyo.kind({
 		this.$.createKind.call({
 			owner: "us.ryanhope.mendeley",
 			id: "us.ryanhope.mendeley.item:1",
-			indexes: [{"name": "byYear", props: [{"name":"year"},{"name":"@type"},{"name":"id"}]}]
+			indexes: [
+				{"name": "default", props: [{"name":"@type"},{"name":"id"}]},
+				{"name": "byYear", props: [{"name":"year"},{"name":"publication_outlet"},{"name":"@type"},{"name":"id"}]},
+				{"name": "byPubOutlet", props: [{"name":"publication_outlet"},{"name":"year"},{"name":"@type"},{"name":"id"}]}
+			]
 		})
+	},
+	initComponents: function() {
+		this.inherited(arguments)
+		var sort = this.prefs.get('sort')
+		this.$.sorter.setValue(sort)
+		this.itemChanged(null, sort)
 	},
 	formatKind: function(type, data) {
 		data['_kind'] = this.$.dbService.dbKind
