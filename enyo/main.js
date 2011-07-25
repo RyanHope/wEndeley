@@ -6,10 +6,9 @@ enyo.kind({
   	
   	prefs: new Prefs(),
   	
-  	libraryTotalResults: 0,
   	myLibrary: [],
   	myLibKeys: {},
-  	
+  	  	
   	rightPaneLastViewed: 'detailsView',
 
 	components: [
@@ -21,6 +20,7 @@ enyo.kind({
 				{   name: "mergeDbDocs",  	method: "merge",	onSuccess: "dbMergeSuccess", onFailure: "dbMergeFailure" },
 				{   name: "delDbDocs",  	method: "del",     	onSuccess: "dbDelSuccess" },
 				{   name: "delALL",   		method: "find",    	onSuccess: "dbDelAllSuccess" },
+				{   name: "getMyLib",	  	method: "find",    	onSuccess: "dbMyLibSuccess" },
 			] 
 		},
 		{ name: 'appManager', kind: 'PalmService',
@@ -115,7 +115,7 @@ enyo.kind({
 				},
 				{kind: 'FadeScroller', flex:1, components: [
 					{kind: "MendeleyDividerDrawer", caption: "My Library", name: 'mainList', className: 'main-list'},
-					{kind: "MendeleyDividerDrawer", caption: "Groups", name: 'groups', className: 'main-list'},
+					//{kind: "MendeleyDividerDrawer", caption: "Groups", name: 'groups', className: 'main-list'},
 					/*{kind: "DividerDrawer", caption: "Trash", className: 'main-list', components: [
 						{name: 'trash',  kind: 'DrawerItem', className: 'drawer-item first last', label: 'All Deleted Documents', icon: 'trash', disabled: true}
 					]},*/
@@ -521,6 +521,8 @@ enyo.kind({
 	
 	accountReady: function() {
 		this.$.init.hide()
+		//this.updateLibView(true)
+		this.$.getMyLib.call()
 		/*if (this.prefs.get('firstLaunch')) {
 			this.warn('First Launch')
 			this.prefs.set('firstLaunch', false)
@@ -576,18 +578,10 @@ enyo.kind({
 		this.warn(data)
 	},
 
-	updateLibView: function(showView) {
-		/*this.$.views.setShowing(showView)
-		var libLen = 0
-		if (this.myLibrary && this.myLibrary.length)
-			libLen = this.myLibrary.length
-		this.$.mainList.data = {
-			allDocuments: {label: 'All Documents', icon: 'all-documents', count: libLen},
-			createFolder: {label: 'Create Folder...'}
-		}
+	updateLibView: function() {
 		this.$.mainList.updateControls()
+		/*this.$.groups.data = {}
 		var groups = this.$.plugin.getGroups().response
-		this.$.groups.data = {}
 		for (i in groups) {
 			this.$.groups.data[groups[i].id] = {label: groups[i].name, count: groups[i].size, icon: 'group-folder'}
 			this.warn(groups[i])
@@ -703,6 +697,10 @@ enyo.kind({
 		//this.log(inSender)
 		//this.log(inResponse)
 	},
+	dbMyLibSuccess: function(inSender, inResponse, inRequest) {
+		this.$.mainList.data.allDocuments.count = inResponse.results.length
+		this.updateLibView() 
+	},
 	dbGetSuccess: function(inSender, inResponse, inRequest) {
 		//this.log("DB GET - SUCCESS")
 		//this.log(inSender)
@@ -713,10 +711,12 @@ enyo.kind({
 	dbMergeSuccess: function(inSender, inResponse, inRequest) {
 		//this.log("DB MERGE - SUCCESS")
 		//this.log(inResponse)
-		if (inResponse.count==0)
+		if (inResponse.count==0) {
 			this.$.mergeDbDocs.call({'objects': [this.formatKind('libraryDoc', inRequest.params.props)]})
-		else
+		} else {
 			this.$.viewLibrary.reset()
+			this.$.getMyLib.call()
+		}
 	},
 	dbMergeFailure: function(inSender, inResponse, inRequest) {
 		//this.warn("DB MERGE - FAIL")
@@ -735,6 +735,7 @@ enyo.kind({
 			this.error(inResponse.results[i]._id)
 			this.$.delDbDocs.call({ids: [inResponse.results[i]._id], purge: true})
 		}
+		this.$.viewLibrary.reset()
 	},	
 	create: function() {
 		/*
@@ -761,6 +762,11 @@ enyo.kind({
 		var sort = this.prefs.get('sort')
 		this.$.sorter.setValue(sort)
 		this.itemChanged(null, sort)
+		this.$.mainList.data = {
+			allDocuments: {label: 'All Documents', icon: 'all-documents', count: 0},
+			createFolder: {label: 'Create Folder...'}
+		}
+		this.updateLibView()
 	},
 	formatKind: function(type, data) {
 		data['_kind'] = this.$.dbService.dbKind

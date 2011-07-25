@@ -6,7 +6,7 @@ function Prefs() {
 		syncOnLaunch: false,
 		tokens: ['',''],
 		firstLaunch: true,
-		sort: 1,
+		sort: 1,		
 		
 	}
 	
