@@ -273,12 +273,12 @@ enyo.kind({
 	
 	handleDocMenuTap: function(inSender, command) {
 		var doc = this.$.viewLibrary.fetch(inSender.rowIndex)
-		if (doc && doc._localFile) {
+		if (doc && doc.files[0]._localFile) {
 			if (command == 'openFile') {
 				this.$.appManager.call( {                                    
 		                'id': "com.quickoffice.ar",    
 		                params: {                             
-		                    target: doc._localFile
+		                    target: doc.files[0]._localFile
 		                }                                               
 		            }                                             
 		        )
@@ -289,7 +289,7 @@ enyo.kind({
 		                	summary: 'Here is a great paper!',
 		                	text: 'I think you should read this paper. See attached.',
 		                	attachments: [{
-		                		fullPath: doc._localFile,
+		                		fullPath: doc.files[0]._localFile,
 		                		mimeType: 'application/pdf'
 		                	}]
 		                }                                               
@@ -306,7 +306,8 @@ enyo.kind({
 	listItemHold: function(inSender, inEvent) {
 		this.$.docMenu.setRowIndex(inEvent.rowIndex)
 		this.$.docMenu.openAtEvent(inEvent)
-		if (this.$.viewLibrary.data[inSender.rowIndex]._localFile) {
+		var doc = this.$.viewLibrary.fetch(inSender.rowIndex)
+		if (doc.files[0]._localFile) {
 			this.$.docMenu.$.openFile.setDisabled(false)
 			this.$.docMenu.$.sendByEmail.setDisabled(false)
 		} else {
@@ -630,14 +631,13 @@ enyo.kind({
     	var data = enyo.json.parse(data)
     	if (data.files && data.files.length>0) {
     		for (var i in data.files) {
-    			var path = ''
     			if (data.files.length==1)
-    				path = data['_localFile'] = this.filenameForReference(data, 0)
+    				data.files[i]['_localFile'] = this.filenameForReference(data, 0)
     			else
-    				path = data['_localFile'] = this.filenameForReference(data, i+1)
-				var checkResponse = this.$.plugin.checkFile(data.id, data.files[i].file_hash, path)
+    				data.files[i]['_localFile'] = this.filenameForReference(data, i+1)
+				var checkResponse = this.$.plugin.checkFile(data.id, data.files[i].file_hash, data.files[i]['_localFile'])
 				if (checkResponse.retVal == 0)
-        			this.$.plugin.fetchFile(data.id, data.files[i].file_hash, path)
+        			this.$.plugin.fetchFile(data.id, data.files[i].file_hash, data.files[i]['_localFile'])
     		}
     	}
 		//this.myLibrary.push(data)
